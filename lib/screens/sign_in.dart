@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:sahayagi/screens/sign_up.dart';
 
 import '../widget/common_widget.dart';
 
@@ -208,7 +209,7 @@ class _SignInState extends State<SignIn> {
                               style: const TextStyle(color: Colors.blue, fontSize: 15),
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () {
-                                  // Navigate to sign-up page
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => SignUp(),));
                                 },
                             ),
                           ],

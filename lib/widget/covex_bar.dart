@@ -4,6 +4,7 @@
 
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sahayagi/widget/common_widget.dart';
 import '../screens/applied_events.dart';
 import '../screens/event_post.dart';
 import '../screens/home_page.dart';
@@ -35,7 +36,7 @@ class _ConvexBarDemoState extends State<ConvexBarDemo> {
           initialActiveIndex: index,
           activeColor: Colors.white,
           style: TabStyle.react,
-          backgroundColor: Colors.black,
+          backgroundColor: appColorLight,
           curveSize: 50,
           shadowColor: Colors.blue,
 
@@ -47,10 +48,10 @@ class _ConvexBarDemoState extends State<ConvexBarDemo> {
             });
           },
           items: const [
-            TabItem(icon: Icon(Icons.home,color: Colors.orange,)),
-            TabItem(icon: Icon(Icons.account_circle,color: Colors.orange)),
-            TabItem(icon: Icon(Icons.event_available_rounded,color: Colors.orange)),
-            TabItem(icon: Icon(Icons.post_add,color: Colors.orange)),
+            TabItem(icon: Icon(Icons.home,color: texColorLight,)),
+            TabItem(icon: Icon(Icons.account_circle,color: texColorLight)),
+            TabItem(icon: Icon(Icons.event_available_rounded,color: texColorLight)),
+            TabItem(icon: Icon(Icons.post_add,color: texColorLight)),
           ]),
 
     );

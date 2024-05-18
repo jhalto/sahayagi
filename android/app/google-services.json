@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "1063292408157",
-    "project_id": "sahayagi-6f549",
-    "storage_bucket": "sahayagi-6f549.appspot.com"
+    "project_number": "50017062241",
+    "project_id": "volunteer-app-f08d6",
+    "storage_bucket": "volunteer-app-f08d6.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1063292408157:android:9095287c6f2a71a76058b4",
+        "mobilesdk_app_id": "1:50017062241:android:c46b31acb2df3ba4344920",
         "android_client_info": {
           "package_name": "com.example.sahayagi"
         }
@@ -15,7 +15,26 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBF89cJO521foKAYZ_F_a9sdwoeHcE-ycg"
+          "current_key": "AIzaSyA6AcqDZfI4tl6v4G4-eCUhoS3tbGhHeu4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:50017062241:android:bcaee67cf00859fd344920",
+        "android_client_info": {
+          "package_name": "com.example.volunteer_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA6AcqDZfI4tl6v4G4-eCUhoS3tbGhHeu4"
         }
       ],
       "services": {

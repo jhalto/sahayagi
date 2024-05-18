@@ -22,13 +22,16 @@ class _HomePageState extends State<HomePage> {
 
       appBar: AppBar(
         leading: GestureDetector(
-          onForcePressStart: (details) => SignIn(),
+          onForcePressStart: (details) => const SignIn(),
           onTap: (){
-            Navigator.push(context, MaterialPageRoute(builder: (context) => SignIn(),));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const SignIn(),));
           },
-          child: CircleAvatar(
-            foregroundImage: NetworkImage("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-Q8z7LMNUcy7c84k6loduysKVlfQtHyBTEVK7odCwUg&s"),
+          child: const Padding(
+            padding: EdgeInsets.all(5.0),
+            child: CircleAvatar(
+              foregroundImage: NetworkImage("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-Q8z7LMNUcy7c84k6loduysKVlfQtHyBTEVK7odCwUg&s"),
 
+            ),
           ),
         ),
         toolbarHeight: 65,
