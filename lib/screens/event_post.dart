@@ -10,6 +10,8 @@ class EventPost extends StatefulWidget {
 class _EventPostState extends State<EventPost> {
   @override
   Widget build(BuildContext context) {
-    return const Scaffold();
+    return const Scaffold(
+
+    );
   }
 }

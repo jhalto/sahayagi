@@ -4,6 +4,7 @@
 
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sahayagi/screens/profile_page.dart';
 import 'package:sahayagi/widget/common_widget.dart';
 import '../screens/applied_events.dart';
 import '../screens/event_post.dart';

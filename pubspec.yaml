@@ -39,6 +39,11 @@ dependencies:
   convex_bottom_bar:
   firebase_core: ^2.31.0
   firebase_auth: ^4.17.7
+  cloud_firestore: ^4.15.10
+  image_picker: ^1.1.1
+  firebase_storage: ^11.7.5
+  get:
+  flutter_otp_text_field: ^1.1.3+2
 
 dev_dependencies:
   flutter_test:

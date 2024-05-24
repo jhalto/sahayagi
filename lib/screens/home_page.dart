@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sahayagi/screens/app_drawer.dart';
 import 'package:sahayagi/screens/sign_in.dart';
 import '../models/events_model.dart';
 import '../widget/common_widget.dart';
@@ -19,21 +20,9 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
 
     return Scaffold(
-
+      drawer: AppDrawer(),
       appBar: AppBar(
-        leading: GestureDetector(
-          onForcePressStart: (details) => const SignIn(),
-          onTap: (){
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const SignIn(),));
-          },
-          child: const Padding(
-            padding: EdgeInsets.all(5.0),
-            child: CircleAvatar(
-              foregroundImage: NetworkImage("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-Q8z7LMNUcy7c84k6loduysKVlfQtHyBTEVK7odCwUg&s"),
 
-            ),
-          ),
-        ),
         toolbarHeight: 65,
 
         centerTitle: true,

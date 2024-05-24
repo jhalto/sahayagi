@@ -1,6 +1,7 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:sahayagi/helpers/helper.dart';
 import 'package:sahayagi/screens/profile.dart';
 import '../widget/common_widget.dart';
 import 'applied_events.dart';
@@ -44,7 +45,7 @@ class _AppDrawerState extends State<AppDrawer> {
               )),
           InkWell(
             onTap: (){
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const MyProfile(),));
+
             },
             child: ListTile(
 
@@ -102,7 +103,10 @@ class _AppDrawerState extends State<AppDrawer> {
                 ],
               ),
             ),
-          )
+          ),
+          TextButton(onPressed: (){
+            MyHelper().logOut();
+          }, child: Text("Log Out"))
 
 
 

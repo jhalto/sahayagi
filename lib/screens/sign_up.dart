@@ -1,9 +1,10 @@
 
 import 'package:flutter/material.dart';
 
+
 import 'package:sahayagi/screens/sign_in.dart';
 import 'package:sahayagi/widget/common_widget.dart';
-import 'package:sahayagi/widget/helper.dart';
+import 'package:sahayagi/helpers/helper.dart';
 class SignUp extends StatefulWidget {
   const SignUp({Key? key}) : super(key: key);
 
@@ -12,11 +13,15 @@ class SignUp extends StatefulWidget {
 }
 
 class _SignUpState extends State<SignUp> {
-  final TextEditingController _emailController= TextEditingController();
-  final TextEditingController _passwordController= TextEditingController();
-//  final TextEditingController _numberController= TextEditingController();
+
   @override
   Widget build(BuildContext context) {
+
+    final TextEditingController _emailController = TextEditingController();
+    final TextEditingController _passwordController = TextEditingController();
+
+
+
     return SafeArea(
       child: Scaffold(
         resizeToAvoidBottomInset: false,
@@ -28,8 +33,8 @@ class _SignUpState extends State<SignUp> {
           child: Column(
             children: [
               const SizedBox(height: 30),
-              TextField(
-                controller: _emailController,
+              TextFormField(
+                 controller: _emailController,
                 decoration: InputDecoration(
                     hintText: "Please Enter Email",
                     border: OutlineInputBorder(
@@ -38,8 +43,8 @@ class _SignUpState extends State<SignUp> {
                 ),
               ),
               const SizedBox(height: 10,),
-              TextField(
-                controller: _passwordController,
+              TextFormField(
+                  controller: _passwordController,
                 decoration: InputDecoration(
                     hintText: "Please Enter Password",
                     border: OutlineInputBorder(
@@ -48,24 +53,15 @@ class _SignUpState extends State<SignUp> {
                 ),
               ),
 
-              // TextField(
-              //   controller: _numberController,
-              //   decoration: InputDecoration(
-              //       hintText: "Please Enter Number",
-              //        border: OutlineInputBorder(
-              //         borderRadius: BorderRadius.circular(10),
-              //       )
-              //   ),
-              // ),
-              // const SizedBox(height: 50,),
               ElevatedButton(onPressed: (){
-                var e= _emailController.text;
+                var e=_emailController.text;
                 var p=_passwordController.text;
                 var obj = MyHelper().signUp(e, p, context);
+
               }, child: const Text("Sign Up"),),
               const SizedBox(height: 10,),
               TextButton(onPressed: (){
-                Navigator.push(context, MaterialPageRoute(builder: (_)=>const SignIn()));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SignIn(),));
               }, child: const Text("Already have an account?"),)
 
 
