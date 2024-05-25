@@ -4,12 +4,12 @@
 
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:sahayagi/screens/profile_page.dart';
+import 'package:sahayagi/screens/events.dart';
 import 'package:sahayagi/widget/common_widget.dart';
 import '../screens/applied_events.dart';
 import '../screens/event_post.dart';
 import '../screens/home_page.dart';
-import '../screens/profile.dart';
+
 
 class ConvexBarDemo extends StatefulWidget {
   const ConvexBarDemo({super.key});
@@ -19,7 +19,7 @@ class ConvexBarDemo extends StatefulWidget {
 }
 
 class _ConvexBarDemoState extends State<ConvexBarDemo> {
-  List<Widget> pages = [const HomePage(),const MyProfile(),const AppliedEvents(),const EventPost()];
+  List<Widget> pages = [const HomePage(),const AllEvents(),const AppliedEvents(),const EventPost()];
   int index =0;
   @override
   Widget build(BuildContext context) {
@@ -40,7 +40,6 @@ class _ConvexBarDemoState extends State<ConvexBarDemo> {
           backgroundColor: appColorLight,
           curveSize: 50,
           shadowColor: Colors.blue,
-
 
 
           onTap: (val){

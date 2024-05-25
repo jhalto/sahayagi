@@ -1,14 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
-import 'package:sahayagi/screens/create_user_profile.dart';
- import 'package:sahayagi/screens/profile.dart';
-import 'package:sahayagi/screens/profile_page.dart';
 import 'package:sahayagi/screens/sign_in.dart';
-import 'package:sahayagi/screens/sign_up.dart';
+
 import 'package:sahayagi/widget/common_widget.dart';
-import 'package:sahayagi/widget/covex_bar.dart';
+
 
 
 void main() async {
@@ -16,7 +12,7 @@ void main() async {
    await Firebase.initializeApp(
      options: FirebaseOptions(apiKey: 'AIzaSyBF89cJO521foKAYZ_F_a9sdwoeHcE-ycg', appId: '1:1063292408157:android:9095287c6f2a71a76058b4', messagingSenderId: '1063292408157', projectId: 'sahayagi-6f549',storageBucket: 'sahayagi-6f549.appspot.com')
  );
-       // .then((value) => Get.put(AuthenticationRepository()));
+
   runApp(const MyApp());
 }
 

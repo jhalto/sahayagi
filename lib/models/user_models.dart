@@ -20,3 +20,7 @@ class UserModel{
     required this.userDistrict});
 }
 
+class GetUserName{
+  final String ?documentId;
+  GetUserName({this.documentId});
+}

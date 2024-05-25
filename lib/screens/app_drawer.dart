@@ -105,7 +105,12 @@ class _AppDrawerState extends State<AppDrawer> {
             ),
           ),
           TextButton(onPressed: (){
-            MyHelper().logOut();
+           var logOut = MyHelper().logOut(
+
+           );
+           setState(() {
+
+           });
           }, child: Text("Log Out"))
 
 
