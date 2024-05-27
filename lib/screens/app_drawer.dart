@@ -1,7 +1,10 @@
 
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sahayagi/helpers/helper.dart';
+import 'package:sahayagi/screens/create_user_profile.dart';
 import 'package:sahayagi/screens/profile.dart';
 import '../widget/common_widget.dart';
 import 'applied_events.dart';
@@ -16,6 +19,102 @@ class AppDrawer extends StatefulWidget {
 }
 
 class _AppDrawerState extends State<AppDrawer> {
+  String? userName;
+  String? userNumber;
+  String? userPostOffice;
+  String? userSubDistrict;
+  String? userDistrict;
+  String? userEmail;
+  String? userSkill;
+  String? userImageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserName();
+    _fetchUserNumber();
+    _fetchUserPostOffice();
+    _fetchUserEmail();
+    _fetchUserSubDistrict();
+    _fetchUserDistrict();
+    _fetchUserSkill();
+    _fetchUserImageUrl();
+  }
+
+  void _fetchUserName() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String? name = await MyHelper().getUserName(user.uid);
+      setState(() {
+        userName = name;
+
+      });
+    }
+  }
+  void _fetchUserEmail() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String? email = await MyHelper().getUserEmail(user.uid);
+      setState(() {
+        userEmail = email;
+
+      });
+    }
+  }
+  void _fetchUserNumber() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String? number = await MyHelper().getUserNumber(user.uid);
+      setState(() {
+        userNumber = number;
+      });
+    }
+  }
+  void _fetchUserPostOffice() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String? postOffice = await MyHelper().getUserPostOffice(user.uid);
+      setState(() {
+        userPostOffice= postOffice;
+      });
+    }
+  }
+  void _fetchUserSubDistrict() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String? subDistrict = await MyHelper().getUserSubDistrict(user.uid);
+      setState(() {
+        userSubDistrict= subDistrict;
+      });
+    }
+  }
+  void _fetchUserDistrict() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String? district = await MyHelper().getUserDistrict(user.uid);
+      setState(() {
+        userDistrict= district;
+      });
+    }
+  }
+  void _fetchUserSkill() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String? skill = await MyHelper().getUserSkill(user.uid);
+      setState(() {
+        userSkill= skill;
+      });
+    }
+  }
+  void _fetchUserImageUrl() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String? imageUrl = await MyHelper().getUserImageUrl(user.uid);
+      setState(() {
+        userImageUrl= imageUrl;
+      });
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -32,88 +131,51 @@ class _AppDrawerState extends State<AppDrawer> {
               ),
               padding: EdgeInsets.zero,
               child: UserAccountsDrawerHeader(
+
                 decoration: const BoxDecoration(
+
                     color: appColorLight
                 ),
                 currentAccountPicture: const CircleAvatar(
-                  backgroundImage: NetworkImage(
-
-                      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJ9ow8qnnd0mesESrc6VtBODm3bfE5cXhGTj8xPvlOyw&s"),
+                  child: Image(image: NetworkImage("")),
                 ),
-                accountEmail: Text("",style: appFontStyle(15),),
-                accountName: Text("Md. Zobayer Arman Nadim",style: appFontStyle(17),),
+                accountEmail: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("${userEmail}",style: appFontStyle(15),),
+
+                  ],
+                ),
+
+                accountName: Text("${userName}",style: appFontStyle(17),),
               )),
-          InkWell(
-            onTap: (){
-
-            },
-            child: ListTile(
-
-              title: Row(
-                children: [
-                  const Icon(Icons.account_circle),
-                  const SizedBox(width: 10,),
-                  Text("Profile",style: appFontStyle(18,texColorLight),)
-                ],
-              ),
-            ),
+         ListTile(
+           title: Text("Skill: ${userSkill}"),
+         ),
+          ListTile(
+            title: Text("SubDistrict: ${userSubDistrict}"),
           ),
-          InkWell(
-            onTap: (){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const Opportunities(),));
-            },
-            child: ListTile(
-
-              title: Row(
-                children: [
-                  const Icon(Icons.ac_unit_sharp),
-                  const SizedBox(width: 10,),
-                  Text("Oportunities",style: appFontStyle(18,texColorLight),)
-                ],
-              ),
-            ),
+          ListTile(
+            title: Text("District: ${userDistrict}"),
           ),
-          InkWell(
-            onTap: (){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const AppliedEvents(),));
-            },
 
-            child: ListTile(
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: TextButton(onPressed: (){
 
-              title: Row(
-                children: [
-                  const Icon(Icons.event_available),
-                  const SizedBox(width: 10,),
-                  Text("Applied Events",style: appFontStyle(18,texColorLight),)
-                ],
-              ),
-            ),
+            MyHelper().logOut(context);
+            setState(() {
+
+            });
+            }, child: Text("Log Out",style: appFontStyle(20,texColorDark,FontWeight.bold),)),
           ),
-          InkWell(
-            onTap:(){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const Messages(),));
-            },
-            child: ListTile(
 
-              title: Row(
-                children: [
-                  const Icon(Icons.message),
-                  const SizedBox(width: 10,),
-                  Text("Message",style: appFontStyle(18,texColorLight),)
-                ],
-              ),
-            ),
-          ),
           TextButton(onPressed: (){
-           var logOut = MyHelper().logOut(
-
-           );
+           Navigator.push(context, MaterialPageRoute(builder: (context) => VolunteerUserProfile(),));
            setState(() {
 
            });
-          }, child: Text("Log Out"))
-
-
+          }, child: Text("update profile"))
 
 
         ],

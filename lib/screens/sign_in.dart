@@ -52,14 +52,26 @@ class _SignInState extends State<SignIn> {
                       TextSpan(
                         text: 'Join Sahayagi',
                         style: const TextStyle(color: logoColor, fontSize: 20),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () {
-                            // Navigate to sign-up page
-                          },
+                      
                       ),
                     ],
                   ),
                 ),
+                MaterialButton(onPressed: (){}, child: Row(
+                  children: [
+                    Container(
+                      height: 30,
+                      width: 30,
+                      child: Image.asset("lib/images/google.png"),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(50)
+                      ),
+                    ),
+                    SizedBox(width: 5,),
+                    Text("by google account",style: appFontStyle(20),)
+                    
+                  ],
+                ),),
                 const SizedBox(height: 20),
                 const Row(
                   children: [
@@ -109,11 +121,11 @@ class _SignInState extends State<SignIn> {
                                 },child: Container(
                               height: 50,
                                   child: Row(
-                                                                children: [
+                                    children: [
                                   Icon(Icons.email),
                                   Text("Reset via Mail Verification"),
-                                                                ],
-                                                              ),
+                                    ],
+                                  ),
                                 ),
                             ),
                             GestureDetector(

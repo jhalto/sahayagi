@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class EventPost extends StatefulWidget {
@@ -18,32 +19,61 @@ class _EventPostState extends State<EventPost> {
   final TextEditingController _districtController = TextEditingController();
 
   Future<void> addEvent() async {
+    if (_titleController.text.isEmpty ||
+        _descriptionController.text.isEmpty ||
+        _eventTypeController.text.isEmpty ||
+        _skillController.text.isEmpty ||
+        _postOfficeController.text.isEmpty ||
+        _subDistrictController.text.isEmpty ||
+        _districtController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Please fill in all the fields')));
+      return;
+    }
+
     try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('User not logged in')));
+        return;
+      }
+
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      String? userName = userDoc['name'];
+
+      if (userName == null || userName.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Please set your name in your profile')));
+        return;
+      }
+
       CollectionReference events = FirebaseFirestore.instance.collection('events');
       await events.add({
         'title': _titleController.text,
         'description': _descriptionController.text,
         'event_type': _eventTypeController.text,
-        'skill':_skillController.text,
+        'skill': _skillController.text,
         'post_office': _postOfficeController.text,
         'sub_district': _subDistrictController.text,
         'district': _districtController.text,
+        'user_id': user.uid,
+        'user_name': userName,
+        'timestamp': FieldValue.serverTimestamp(),  // Add timestamp here
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Events added successfully')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Event added successfully')));
 
-      // Clear the text fields and refresh the UI
-      setState(() {
-        _titleController.clear();
-        _descriptionController.clear();
-        _eventTypeController.clear();
-        _skillController.clear();
-        _postOfficeController.clear();
-        _subDistrictController.clear();
-        _districtController.clear();
-      });
+      _titleController.clear();
+      _descriptionController.clear();
+      _eventTypeController.clear();
+      _skillController.clear();
+      _postOfficeController.clear();
+      _subDistrictController.clear();
+      _districtController.clear();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add events: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to add event: $e')));
     }
   }
 
@@ -69,8 +99,6 @@ class _EventPostState extends State<EventPost> {
                 ),
               ),
               const SizedBox(height: 10),
-
-              const SizedBox(height: 10),
               TextField(
                 controller: _eventTypeController,
                 decoration: InputDecoration(
@@ -80,6 +108,7 @@ class _EventPostState extends State<EventPost> {
                   ),
                 ),
               ),
+              const SizedBox(height: 10),
               TextField(
                 controller: _descriptionController,
                 decoration: InputDecoration(
@@ -123,7 +152,7 @@ class _EventPostState extends State<EventPost> {
               TextField(
                 controller: _districtController,
                 decoration: InputDecoration(
-                  hintText: 'Enter Event Location ',
+                  hintText: 'Enter Event Location District',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),

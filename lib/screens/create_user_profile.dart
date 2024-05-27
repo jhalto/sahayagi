@@ -1,8 +1,14 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:sahayagi/widget/covex_bar.dart';
 
 class VolunteerUserProfile extends StatefulWidget {
-  const VolunteerUserProfile({super.key});
+  const VolunteerUserProfile({Key? key}) : super(key: key);
 
   @override
   State<VolunteerUserProfile> createState() => _VolunteerUserProfileState();
@@ -17,33 +23,101 @@ class _VolunteerUserProfileState extends State<VolunteerUserProfile> {
   final TextEditingController _subDistrictController = TextEditingController();
   final TextEditingController _districtController = TextEditingController();
 
-  Future<void> addUser() async {
+  File? _image;
+  final picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
     try {
-      CollectionReference users = FirebaseFirestore.instance.collection('users');
-      await users.add({
-        'name': _nameController.text,
-        'phone': _phoneController.text,
-        'age': _ageController.text,
-        'skill':_skillController.text,
-        'post_office': _postOfficeController.text,
-        'sub_district': _subDistrictController.text,
-        'district': _districtController.text,
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User added successfully')));
-
-      // Clear the text fields and refresh the UI
-      setState(() {
-        _nameController.clear();
-        _phoneController.clear();
-        _ageController.clear();
-        _skillController.clear();
-        _postOfficeController.clear();
-        _subDistrictController.clear();
-        _districtController.clear();
-      });
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+          Map<String, dynamic>? data = userDoc.data() as Map<String, dynamic>?;
+          if (data != null) {
+            setState(() {
+              _nameController.text = data['name'] ?? '';
+              _phoneController.text = data['phone'] ?? '';
+              _ageController.text = data['age'] ?? '';
+              _skillController.text = data['skill'] ?? '';
+              _postOfficeController.text = data['postOffice'] ?? '';
+              _subDistrictController.text = data['subDistrict'] ?? '';
+              _districtController.text = data['district'] ?? '';
+            });
+          }
+        }
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add user: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load user data: $e')));
+    }
+  }
+
+  Future<void> updateUser() async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Upload image to Firebase Storage if an image is selected
+        String? imageUrl;
+        if (_image != null) {
+          imageUrl = await uploadImageToFirebaseStorage(_image!);
+        }
+
+        // Update user profile data in Firestore
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+          'name': _nameController.text,
+          'phone': _phoneController.text,
+          'age': _ageController.text,
+          'skill': _skillController.text,
+          'postOffice': _postOfficeController.text,
+          'subDistrict': _subDistrictController.text,
+          'district': _districtController.text,
+          'imageUrl': imageUrl, // Add imageUrl to the user's profile data
+        });
+
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('User updated successfully')));
+        setState(() {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => ConvexBarDemo(),));
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('No user is currently signed in')));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Failed to update user: $e')));
+    }
+  }
+
+  Future<void> _getImage(ImageSource source) async {
+    final pickedFile = await picker.pickImage(source: source);
+
+    setState(() {
+      if (pickedFile != null) {
+        _image = File(pickedFile.path);
+      } else {
+        print('No image selected.');
+      }
+    });
+  }
+
+  Future<String> uploadImageToFirebaseStorage(File imageFile) async {
+    try {
+      Reference storageReference = FirebaseStorage.instance
+          .ref()
+          .child('user_images/${DateTime.now().millisecondsSinceEpoch}');
+      UploadTask uploadTask = storageReference.putFile(imageFile);
+      TaskSnapshot taskSnapshot = await uploadTask;
+      String imageUrl = await taskSnapshot.ref.getDownloadURL();
+      return imageUrl;
+    } catch (e) {
+      throw Exception('Failed to upload image to Firebase Storage: $e');
     }
   }
 
@@ -58,7 +132,32 @@ class _VolunteerUserProfileState extends State<VolunteerUserProfile> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              const SizedBox(height: 30),
+              SizedBox(height: 30),
+              _image != null
+                  ? CircleAvatar(
+                radius: 50,
+                backgroundImage: FileImage(_image!),
+              )
+                  : CircleAvatar(
+                radius: 50,
+                child: Icon(Icons.person),
+              ),
+              SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => _getImage(ImageSource.gallery),
+                    child: Text('Choose Image'),
+                  ),
+                  SizedBox(width: 10),
+                  ElevatedButton(
+                    onPressed: () => _getImage(ImageSource.camera),
+                    child: Text('Take Photo'),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
@@ -68,7 +167,7 @@ class _VolunteerUserProfileState extends State<VolunteerUserProfile> {
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               TextField(
                 controller: _phoneController,
                 decoration: InputDecoration(
@@ -78,7 +177,7 @@ class _VolunteerUserProfileState extends State<VolunteerUserProfile> {
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               TextField(
                 controller: _ageController,
                 decoration: InputDecoration(
@@ -88,7 +187,7 @@ class _VolunteerUserProfileState extends State<VolunteerUserProfile> {
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               TextField(
                 controller: _skillController,
                 decoration: InputDecoration(
@@ -98,7 +197,7 @@ class _VolunteerUserProfileState extends State<VolunteerUserProfile> {
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               TextField(
                 controller: _postOfficeController,
                 decoration: InputDecoration(
@@ -108,7 +207,7 @@ class _VolunteerUserProfileState extends State<VolunteerUserProfile> {
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               TextField(
                 controller: _subDistrictController,
                 decoration: InputDecoration(
@@ -118,7 +217,7 @@ class _VolunteerUserProfileState extends State<VolunteerUserProfile> {
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               TextField(
                 controller: _districtController,
                 decoration: InputDecoration(
@@ -128,10 +227,10 @@ class _VolunteerUserProfileState extends State<VolunteerUserProfile> {
                   ),
                 ),
               ),
-              const SizedBox(height: 50),
+              SizedBox(height: 20),
               ElevatedButton(
-                onPressed: addUser,
-                child: const Text('Submit'),
+                onPressed: updateUser,
+                child: Text('Update'),
               ),
             ],
           ),
