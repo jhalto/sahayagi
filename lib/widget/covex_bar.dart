@@ -4,7 +4,10 @@
 
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:sahayagi/screens/events.dart';
+import 'package:sahayagi/screens/all_user.dart';
+import 'package:sahayagi/screens/edit_posted_events.dart';
+import 'package:sahayagi/screens/suggested_events.dart';
+import 'package:sahayagi/screens/posted_events.dart';
 import 'package:sahayagi/screens/profile.dart';
 import 'package:sahayagi/widget/common_widget.dart';
 import '../screens/applied_events.dart';
@@ -20,7 +23,7 @@ class ConvexBarDemo extends StatefulWidget {
 }
 
 class _ConvexBarDemoState extends State<ConvexBarDemo> {
-  List<Widget> pages = [const HomePage(),const AllEvents(),MyProfile(),const EventPost()];
+  List<Widget> pages = [const HomePage(),const AllEvents(),const PostedEvents(),AllUsers(),];
   int index =0;
   @override
   Widget build(BuildContext context) {
@@ -38,7 +41,7 @@ class _ConvexBarDemoState extends State<ConvexBarDemo> {
           initialActiveIndex: index,
           activeColor: Colors.white,
           style: TabStyle.react,
-          backgroundColor: appColorLight,
+          backgroundColor: appColorDark,
           curveSize: 50,
           shadowColor: Colors.blue,
 
@@ -50,8 +53,8 @@ class _ConvexBarDemoState extends State<ConvexBarDemo> {
           },
           items: const [
             TabItem(icon: Icon(Icons.home,color: texColorLight,)),
-            TabItem(icon: Icon(Icons.account_circle,color: texColorLight)),
-            TabItem(icon: Icon(Icons.event_available_rounded,color: texColorLight)),
+            TabItem(icon: Icon(Icons.event_available,color: texColorLight)),
+            TabItem(icon: Icon(Icons.event_note_sharp,color: texColorLight)),
             TabItem(icon: Icon(Icons.post_add,color: texColorLight)),
           ]),
 

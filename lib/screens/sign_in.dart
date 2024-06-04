@@ -29,6 +29,7 @@ class _SignInState extends State<SignIn> {
 
     return SafeArea(
       child: Scaffold(
+        backgroundColor: texColorLight,
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(8.0),
           child: Form(

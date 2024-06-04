@@ -2,8 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sahayagi/screens/app_drawer.dart';
+import 'package:sahayagi/screens/applied_events.dart';
 import 'package:sahayagi/screens/event_post.dart';
-import '../widget/common_widget.dart'; // Assuming this is where appFontStyle is defined
+import 'package:sahayagi/widget/common_widget.dart'; // Assuming this is where appFontStyle is defined
 
 class AllEvents extends StatefulWidget {
   const AllEvents({super.key});
@@ -34,19 +35,56 @@ class _AllEventsState extends State<AllEvents> {
     });
   }
 
+  Future<void> _registerForEvent(String eventId) async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User not logged in')));
+      return;
+    }
+
+    try {
+      // Adding application details to the 'applications' sub-collection in the specific event document
+      await FirebaseFirestore.instance
+          .collection('events')
+          .doc(eventId)
+          .collection('applications')
+          .doc(user.uid)
+          .set({
+        'user_id': user.uid,
+        'user_name': user.displayName ?? 'Unknown', // assuming displayName is set
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      // Optionally, you can add a reference to this event in the user's document
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('applied_events')
+          .doc(eventId)
+          .set({
+        'event_id': eventId,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Successfully applied for the event')));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to apply for the event: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: AppDrawer(),
       appBar: AppBar(
-        title: Text("Suggested Events"),
+        title: Text("Suggested Events", style: appFontStyle(25, texColorLight)),
         centerTitle: true,
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => EventPost()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => AppliedEvents()));
             },
-            icon: Icon(Icons.add_card_outlined),
+            icon: Icon(Icons.app_registration_rounded),
           ),
         ],
       ),
@@ -107,6 +145,12 @@ class _AllEventsState extends State<AllEvents> {
                             Text('Post Office: ${data['post_office'] ?? 'N/A'}', style: appFontStyle(15)),
                             Text('Sub District: ${data['sub_district'] ?? 'N/A'}', style: appFontStyle(15)),
                             Text('District: ${data['district'] ?? 'N/A'}', style: appFontStyle(15)),
+                            ElevatedButton(
+                              onPressed: () {
+                                _registerForEvent(document.id);
+                              },
+                              child: Text("Apply"),
+                            )
                           ],
                         ),
                       ),
