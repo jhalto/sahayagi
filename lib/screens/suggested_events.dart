@@ -51,7 +51,7 @@ class _AllEventsState extends State<AllEvents> {
           .doc(user.uid)
           .set({
         'user_id': user.uid,
-        'user_name': user.displayName ?? 'Unknown', // assuming displayName is set
+        'name': user.displayName ?? 'Unknown', // assuming displayName is set
         'timestamp': FieldValue.serverTimestamp(),
       });
 
@@ -105,22 +105,22 @@ class _AllEventsState extends State<AllEvents> {
                 .where('skill', isEqualTo: _userSkill)
                 .orderBy('skill', descending: true)
                 .snapshots(),
-            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (snapshot.hasError) {
-                return Center(child: Text('Something went wrong: ${snapshot.error}'));
+            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> eventSnapshot) {
+              if (eventSnapshot.hasError) {
+                return Center(child: Text('Something went wrong: ${eventSnapshot.error}'));
               }
 
-              if (snapshot.connectionState == ConnectionState.waiting) {
+              if (eventSnapshot.connectionState == ConnectionState.waiting) {
                 return Center(child: CircularProgressIndicator());
               }
 
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              if (!eventSnapshot.hasData || eventSnapshot.data!.docs.isEmpty) {
                 return Center(child: Text('No matching events found'));
               }
 
               return ListView(
                 padding: EdgeInsets.all(8.0),
-                children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                children: eventSnapshot.data!.docs.map((DocumentSnapshot document) {
                   Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
                   return Container(
                     height: 350,

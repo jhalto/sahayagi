@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sahayagi/screens/applied_users_in_events.dart';
 import 'package:sahayagi/screens/edit_posted_events.dart';
 
 import '../widget/common_widget.dart';
 import 'app_drawer.dart';
-import 'event_post.dart';
 
 class PostedEvents extends StatefulWidget {
   const PostedEvents({super.key});
@@ -53,7 +53,7 @@ class _PostedEventsState extends State<PostedEvents> {
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const EventPost()));
+              // Add functionality for adding new events
             },
             icon: const Icon(Icons.add_card_outlined),
           ),
@@ -157,15 +157,9 @@ class _PostedEventsState extends State<PostedEvents> {
                                 child: Text('Cancel'),
                               ),
                               TextButton(
-                                onPressed: (){
-                                  _deleteEvent(documentId);
-                                  setState(() {
-                                    Navigator.of(context).pop(true);
-                                  });
-
-
+                                onPressed: () {
+                                  Navigator.of(context).pop(true);
                                 },
-
                                 child: Text('Delete'),
                               ),
                             ],
@@ -179,6 +173,17 @@ class _PostedEventsState extends State<PostedEvents> {
                     },
                     style: ElevatedButton.styleFrom(),
                     child: const Text("Delete"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AppliedUsersInEvent(eventId: documentId),
+                        ),
+                      );
+                    },
+                    child: const Text("View Applicants"),
                   ),
                 ],
               ),

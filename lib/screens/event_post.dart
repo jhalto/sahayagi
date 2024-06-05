@@ -1,10 +1,10 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';  // Add this for date formatting
 import 'package:sahayagi/widget/common_widget.dart';
 
 class EventPost extends StatefulWidget {
@@ -22,6 +22,8 @@ class _EventPostState extends State<EventPost> {
   final TextEditingController _postOfficeController = TextEditingController();
   final TextEditingController _subDistrictController = TextEditingController();
   final TextEditingController _districtController = TextEditingController();
+  DateTime? _eventDate;
+  DateTime? _lastApplicationDate;
 
   File? _image;
   final picker = ImagePicker();
@@ -34,7 +36,9 @@ class _EventPostState extends State<EventPost> {
         _skillController.text.isEmpty ||
         _postOfficeController.text.isEmpty ||
         _subDistrictController.text.isEmpty ||
-        _districtController.text.isEmpty) {
+        _districtController.text.isEmpty ||
+        _eventDate == null ||
+        _lastApplicationDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Please fill in all the fields')));
       return;
@@ -79,6 +83,8 @@ class _EventPostState extends State<EventPost> {
         'user_id': user.uid,
         'user_name': userName,
         'imageUrl': imageUrl, // Add imageUrl to the event data
+        'event_date': _eventDate,
+        'last_application_date': _lastApplicationDate,
         'timestamp': FieldValue.serverTimestamp(),  // Add timestamp here
       });
 
@@ -134,7 +140,22 @@ class _EventPostState extends State<EventPost> {
     _districtController.clear();
     setState(() {
       _image = null;
+      _eventDate = null;
+      _lastApplicationDate = null;
     });
+  }
+
+  // Select a date
+  Future<void> _selectDate(BuildContext context, Function(DateTime) onDateSelected) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null) {
+      onDateSelected(picked);
+    }
   }
 
   @override
@@ -254,6 +275,35 @@ class _EventPostState extends State<EventPost> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => _selectDate(context, (date) {
+                        setState(() {
+                          _eventDate = date;
+                        });
+                      }),
+                      child: Text(_eventDate == null
+                          ? 'Select Event Date'
+                          : DateFormat.yMd().format(_eventDate!)),
+                    ),
+                  ),
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => _selectDate(context, (date) {
+                        setState(() {
+                          _lastApplicationDate = date;
+                        });
+                      }),
+                      child: Text(_lastApplicationDate == null
+                          ? 'Select Last Application Date'
+                          : DateFormat.yMd().format(_lastApplicationDate!)),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 50),
               ElevatedButton(
