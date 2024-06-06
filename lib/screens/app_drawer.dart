@@ -70,6 +70,9 @@ class _AppDrawerState extends State<AppDrawer> {
               return Column(
                 children: [
                   ListTile(
+                    title: Text("Blood Group: ${userData['blood_group'] ?? ''}", style: appFontStyle(20, texColorLight)),
+                  ),
+                  ListTile(
                     title: Text("Skill: ${userData['skill'] ?? ''}", style: appFontStyle(20, texColorLight)),
                   ),
                   ListTile(

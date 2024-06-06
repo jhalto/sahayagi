@@ -1,11 +1,15 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';  // Add this for date formatting
 import 'package:sahayagi/widget/common_widget.dart';
+
+import '../models/location_model.dart';
+import '../models/user_models.dart';
 
 class EventPost extends StatefulWidget {
   const EventPost({Key? key}) : super(key: key);
@@ -22,6 +26,13 @@ class _EventPostState extends State<EventPost> {
   final TextEditingController _postOfficeController = TextEditingController();
   final TextEditingController _subDistrictController = TextEditingController();
   final TextEditingController _districtController = TextEditingController();
+
+  String? _selectedSkill;
+
+  String? _selectedBloodGroup;
+  String? _selectedSubDistrict;
+  String? _selectedDistrict;
+
   DateTime? _eventDate;
   DateTime? _lastApplicationDate;
 
@@ -237,44 +248,115 @@ class _EventPostState extends State<EventPost> {
                 ),
               ),
               const SizedBox(height: 10),
-              TextField(
-                controller: _skillController,
-                decoration: InputDecoration(
-                  hintText: 'Enter Needed Skill',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+              DropdownSearch<String>(
+                items: skills,
+                selectedItem: _selectedSkill,
+                dropdownDecoratorProps: DropDownDecoratorProps(
+                  dropdownSearchDecoration: InputDecoration(
+                    hintText: "Please Select skill",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
+                popupProps: PopupProps.menu(
+                  showSearchBox: true,
+                ),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedSkill = newValue;
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Please select a Skill';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 10),
-              TextField(
-                controller: _postOfficeController,
-                decoration: InputDecoration(
-                  hintText: 'Enter Event Location Post Office',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+              DropdownSearch<String>(
+                items: bloodGroups,
+                selectedItem: _selectedBloodGroup,
+                dropdownDecoratorProps: DropDownDecoratorProps(
+                  dropdownSearchDecoration: InputDecoration(
+                    hintText: "Please Select Blood Group",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
+                popupProps: PopupProps.menu(
+                  showSearchBox: true,
+                ),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedBloodGroup = newValue;
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Please select a blood Group';
+                  }
+                  return null;
+                },
+              ),
+
+
+              const SizedBox(height: 10),
+              DropdownSearch<String>(
+                items: subDistricts,
+                selectedItem: _selectedSubDistrict,
+                dropdownDecoratorProps: DropDownDecoratorProps(
+                  dropdownSearchDecoration: InputDecoration(
+                    hintText: "Please Select Sub-District",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                popupProps: PopupProps.menu(
+                  showSearchBox: true,
+                ),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedSubDistrict = newValue;
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Please select a Sub-District';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 10),
-              TextField(
-                controller: _subDistrictController,
-                decoration: InputDecoration(
-                  hintText: 'Enter Event Location Sub District',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+              DropdownSearch<String>(
+
+                items: districts,
+                selectedItem: _selectedDistrict,
+                dropdownDecoratorProps: DropDownDecoratorProps(
+                  dropdownSearchDecoration: InputDecoration(
+                    hintText: "Please Select District",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _districtController,
-                decoration: InputDecoration(
-                  hintText: 'Enter Event Location District',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                popupProps: PopupProps.menu(
+                  showSearchBox: true,
                 ),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedDistrict = newValue;
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Please select District';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 10),
               Row(

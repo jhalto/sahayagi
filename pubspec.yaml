@@ -47,6 +47,7 @@ dependencies:
   flutter_launcher_icons: ^0.13.1
   firebase_messaging:
   intl: ^0.19.0
+  dropdown_search: ^5.0.2
 
 dev_dependencies:
   flutter_test:

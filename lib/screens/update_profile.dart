@@ -1,11 +1,15 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sahayagi/widget/covex_bar.dart';
+
+import '../models/location_model.dart';
+import '../models/user_models.dart';
 
 class UpdateUserProfile extends StatefulWidget {
   const UpdateUserProfile({Key? key}) : super(key: key);
@@ -18,10 +22,11 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
-  final TextEditingController _skillController = TextEditingController();
-  final TextEditingController _postOfficeController = TextEditingController();
-  final TextEditingController _subDistrictController = TextEditingController();
-  final TextEditingController _districtController = TextEditingController();
+  String? _selectedSkill;
+
+  String? _selectedBloodGroup;
+  String? _selectedSubDistrict;
+  String? _selectedDistrict;
 
   File? _image;
   final picker = ImagePicker();
@@ -44,10 +49,10 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
               _nameController.text = data['name'] ?? '';
               _phoneController.text = data['phone'] ?? '';
               _ageController.text = data['age'] ?? '';
-              _skillController.text = data['skill'] ?? '';
-              _postOfficeController.text = data['postOffice'] ?? '';
-              _subDistrictController.text = data['subDistrict'] ?? '';
-              _districtController.text = data['district'] ?? '';
+              _selectedSkill = data['skill'] ?? '';
+              _selectedBloodGroup = data['blood_group'] ?? '';
+              _selectedSubDistrict = data['sub_district'] ?? '';
+              _selectedDistrict = data['district'] ?? '';
             });
           }
         }
@@ -73,10 +78,9 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
           'name': _nameController.text,
           'phone': _phoneController.text,
           'age': _ageController.text,
-          'skill': _skillController.text,
-          'postOffice': _postOfficeController.text,
-          'subDistrict': _subDistrictController.text,
-          'district': _districtController.text,
+          'skill': _selectedSkill,
+          'subDistrict': _selectedSubDistrict,
+          'district': _selectedDistrict,
         };
 
         // Only add imageUrl if an image was uploaded
@@ -192,45 +196,117 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
                 ),
               ),
               SizedBox(height: 10),
-              TextField(
-                controller: _skillController,
-                decoration: InputDecoration(
-                  hintText: 'Enter Skill',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+              DropdownSearch<String>(
+                items: skills,
+                selectedItem: _selectedSkill,
+                dropdownDecoratorProps: DropDownDecoratorProps(
+                  dropdownSearchDecoration: InputDecoration(
+                    hintText: "Please Select skill",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
+                popupProps: PopupProps.menu(
+                  showSearchBox: true,
+                ),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedSkill = newValue;
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Please select a Skill';
+                  }
+                  return null;
+                },
               ),
-              SizedBox(height: 10),
-              TextField(
-                controller: _postOfficeController,
-                decoration: InputDecoration(
-                  hintText: 'Enter Post Office',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+              const SizedBox(height: 10),
+              DropdownSearch<String>(
+                items: bloodGroups,
+                selectedItem: _selectedBloodGroup,
+                dropdownDecoratorProps: DropDownDecoratorProps(
+                  dropdownSearchDecoration: InputDecoration(
+                    hintText: "Please Select Blood Group",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
+                popupProps: PopupProps.menu(
+                  showSearchBox: true,
+                ),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedBloodGroup = newValue;
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Please select a blood Group';
+                  }
+                  return null;
+                },
               ),
-              SizedBox(height: 10),
-              TextField(
-                controller: _subDistrictController,
-                decoration: InputDecoration(
-                  hintText: 'Enter Sub District',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+
+
+              const SizedBox(height: 10),
+              DropdownSearch<String>(
+                items: subDistricts,
+                selectedItem: _selectedSubDistrict,
+                dropdownDecoratorProps: DropDownDecoratorProps(
+                  dropdownSearchDecoration: InputDecoration(
+                    hintText: "Please Select Sub-District",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
+                popupProps: PopupProps.menu(
+                  showSearchBox: true,
+                ),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedSubDistrict = newValue;
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Please select a Sub-District';
+                  }
+                  return null;
+                },
               ),
-              SizedBox(height: 10),
-              TextField(
-                controller: _districtController,
-                decoration: InputDecoration(
-                  hintText: 'Enter District',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+              const SizedBox(height: 10),
+              DropdownSearch<String>(
+
+                items: districts,
+                selectedItem: _selectedDistrict,
+                dropdownDecoratorProps: DropDownDecoratorProps(
+                  dropdownSearchDecoration: InputDecoration(
+                    hintText: "Please Select District",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
+                popupProps: PopupProps.menu(
+                  showSearchBox: true,
+                ),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedDistrict = newValue;
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Please select District';
+                  }
+                  return null;
+                },
               ),
+              const SizedBox(height: 20),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: updateUser,

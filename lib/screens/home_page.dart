@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sahayagi/screens/app_drawer.dart';
+import 'package:sahayagi/screens/post.dart';
 import 'package:sahayagi/screens/sign_in.dart';
 import '../models/events_model.dart';
 import '../widget/common_widget.dart';
@@ -50,7 +51,7 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             onPressed: () {
               Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => EventPost()));
+                  MaterialPageRoute(builder: (context) => PostOption()));
             },
             icon: Icon(Icons.add_card_outlined),
           ),

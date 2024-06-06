@@ -8,8 +8,8 @@ import 'package:sahayagi/screens/sign_in.dart';
 import '../widget/covex_bar.dart';
 
 class MyHelper {
-  Future<void> signUp(String email, String password, String name, String phone,String skill,
-      String postOffice, String subDistrict, String district,
+  Future<void> signUp(String email, String password, String name, String phone,String age,String skill, String bloodGroup,
+      String subDistrict, String district,
       BuildContext context) async {
     try {
       final credential = await FirebaseAuth.instance
@@ -24,9 +24,10 @@ class MyHelper {
           'email': email,
           'name': name,
           'phone': phone,
+          'age': age,
           'skill': skill,
-          'postOffice': postOffice,
-          'subDistrict': subDistrict,
+          'blood_group': bloodGroup,
+          'sub_district': subDistrict,
           'district': district,
           'role': 'user',
         });
