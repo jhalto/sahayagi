@@ -76,7 +76,7 @@ class _AppDrawerState extends State<AppDrawer> {
                     title: Text("Skill: ${userData['skill'] ?? ''}", style: appFontStyle(20, texColorLight)),
                   ),
                   ListTile(
-                    title: Text("SubDistrict: ${userData['subDistrict'] ?? ''}", style: appFontStyle(20, texColorLight)),
+                    title: Text("SubDistrict: ${userData['sub_district'] ?? ''}", style: appFontStyle(20, texColorLight)),
                   ),
                   ListTile(
                     title: Text("District: ${userData['district'] ?? ''}", style: appFontStyle(20, texColorLight)),

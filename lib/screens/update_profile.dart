@@ -79,7 +79,8 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
           'phone': _phoneController.text,
           'age': _ageController.text,
           'skill': _selectedSkill,
-          'subDistrict': _selectedSubDistrict,
+          'blood_group': _selectedBloodGroup,
+          'sub_district': _selectedSubDistrict,
           'district': _selectedDistrict,
         };
 

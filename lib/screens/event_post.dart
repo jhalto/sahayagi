@@ -19,35 +19,29 @@ class EventPost extends StatefulWidget {
 }
 
 class _EventPostState extends State<EventPost> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _eventTypeController = TextEditingController();
-  final TextEditingController _skillController = TextEditingController();
-  final TextEditingController _postOfficeController = TextEditingController();
-  final TextEditingController _subDistrictController = TextEditingController();
-  final TextEditingController _districtController = TextEditingController();
-
+  final TextEditingController _locationDetailController = TextEditingController();
   String? _selectedSkill;
-
-  String? _selectedBloodGroup;
   String? _selectedSubDistrict;
   String? _selectedDistrict;
-
   DateTime? _eventDate;
   DateTime? _lastApplicationDate;
 
-  File? _image;
-  final picker = ImagePicker();
+  // File? _image;
+  // final picker = ImagePicker();
   bool _isLoading = false;
 
   Future<void> addEvent() async {
     if (_titleController.text.isEmpty ||
         _descriptionController.text.isEmpty ||
         _eventTypeController.text.isEmpty ||
-        _skillController.text.isEmpty ||
-        _postOfficeController.text.isEmpty ||
-        _subDistrictController.text.isEmpty ||
-        _districtController.text.isEmpty ||
+        _locationDetailController.text.isEmpty ||
+        _selectedSkill!.isEmpty ||
+        _selectedSubDistrict!.isEmpty ||
+        _selectedDistrict!.isEmpty ||
         _eventDate == null ||
         _lastApplicationDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -77,23 +71,23 @@ class _EventPostState extends State<EventPost> {
       }
 
       // Upload image to Firebase Storage if an image is selected
-      String? imageUrl;
-      if (_image != null) {
-        imageUrl = await _uploadImageToFirebaseStorage(_image!);
-      }
+      // String? imageUrl;
+      // if (_image != null) {
+      //   imageUrl = await _uploadImageToFirebaseStorage(_image!);
+      // }
 
       CollectionReference events = FirebaseFirestore.instance.collection('events');
       await events.add({
         'title': _titleController.text,
         'description': _descriptionController.text,
         'event_type': _eventTypeController.text,
-        'skill': _skillController.text,
-        'post_office': _postOfficeController.text,
-        'sub_district': _subDistrictController.text,
-        'district': _districtController.text,
+        'location_details': _locationDetailController.text,
+        'skill': _selectedSkill,
+        'sub_district': _selectedDistrict,
+        'district': _selectedDistrict,
         'user_id': user.uid,
         'user_name': userName,
-        'imageUrl': imageUrl, // Add imageUrl to the event data
+        // 'imageUrl': imageUrl, // Add imageUrl to the event data
         'event_date': _eventDate,
         'last_application_date': _lastApplicationDate,
         'timestamp': FieldValue.serverTimestamp(),  // Add timestamp here
@@ -113,44 +107,42 @@ class _EventPostState extends State<EventPost> {
   }
 
   // Pick an image from the gallery or camera
-  Future<void> _getImage(ImageSource source) async {
-    final pickedFile = await picker.pickImage(source: source);
-
-    setState(() {
-      if (pickedFile != null) {
-        _image = File(pickedFile.path);
-      } else {
-        print('No image selected.');
-      }
-    });
-  }
+  // Future<void> _getImage(ImageSource source) async {
+  //   final pickedFile = await picker.pickImage(source: source);
+  //
+  //   setState(() {
+  //     if (pickedFile != null) {
+  //       _image = File(pickedFile.path);
+  //     } else {
+  //       print('No image selected.');
+  //     }
+  //   });
+  // }
 
   // Upload image to Firebase Storage and get the download URL
-  Future<String> _uploadImageToFirebaseStorage(File imageFile) async {
-    try {
-      Reference storageReference = FirebaseStorage.instance
-          .ref()
-          .child('event_images/${DateTime.now().millisecondsSinceEpoch}');
-      UploadTask uploadTask = storageReference.putFile(imageFile);
-      TaskSnapshot taskSnapshot = await uploadTask;
-      String imageUrl = await taskSnapshot.ref.getDownloadURL();
-      return imageUrl;
-    } catch (e) {
-      throw Exception('Failed to upload image to Firebase Storage: $e');
-    }
-  }
+  // Future<String> _uploadImageToFirebaseStorage(File imageFile) async {
+  //   try {
+  //     Reference storageReference = FirebaseStorage.instance
+  //         .ref()
+  //         .child('event_images/${DateTime.now().millisecondsSinceEpoch}');
+  //     UploadTask uploadTask = storageReference.putFile(imageFile);
+  //     TaskSnapshot taskSnapshot = await uploadTask;
+  //     String imageUrl = await taskSnapshot.ref.getDownloadURL();
+  //     return imageUrl;
+  //   } catch (e) {
+  //     throw Exception('Failed to upload image to Firebase Storage: $e');
+  //   }
+  // }
 
   // Clear all text fields
   void _clearTextFields() {
     _titleController.clear();
     _descriptionController.clear();
     _eventTypeController.clear();
-    _skillController.clear();
-    _postOfficeController.clear();
-    _subDistrictController.clear();
-    _districtController.clear();
+    _locationDetailController.clear();
+
     setState(() {
-      _image = null;
+      // _image = null;
       _eventDate = null;
       _lastApplicationDate = null;
     });
@@ -180,219 +172,233 @@ class _EventPostState extends State<EventPost> {
         child: _isLoading
             ? Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
-          child: Column(
-            children: [
-              const SizedBox(height: 30),
-              _image != null
-                  ? Container(
-                height: 200,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: FileImage(_image!),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              )
-                  : Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                height: 200,
-                width: double.infinity,
-                child: Icon(Icons.photo),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () => _getImage(ImageSource.gallery),
-                    child: Text('Choose Image'),
-                  ),
-                  const SizedBox(width: 10),
-                  ElevatedButton(
-                    onPressed: () => _getImage(ImageSource.camera),
-                    child: Text('Take Photo'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  hintText: 'Enter title',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _eventTypeController,
-                decoration: InputDecoration(
-                  hintText: 'Enter Event Type',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _descriptionController,
-                decoration: InputDecoration(
-                  hintText: 'Enter Description',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              DropdownSearch<String>(
-                items: skills,
-                selectedItem: _selectedSkill,
-                dropdownDecoratorProps: DropDownDecoratorProps(
-                  dropdownSearchDecoration: InputDecoration(
-                    hintText: "Please Select skill",
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                const SizedBox(height: 30),
+                // _image != null
+                //     ? Container(
+                //   height: 200,
+                //   decoration: BoxDecoration(
+                //     image: DecorationImage(
+                //       image: FileImage(_image!),
+                //       fit: BoxFit.cover,
+                //     ),
+                //   ),
+                // )
+                //     : Container(
+                //   decoration: BoxDecoration(
+                //     border: Border.all(color: Colors.black),
+                //     borderRadius: BorderRadius.circular(20),
+                //   ),
+                //   height: 200,
+                //   width: double.infinity,
+                //   child: Icon(Icons.photo),
+                // ),
+                // const SizedBox(height: 10),
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.center,
+                //   children: [
+                //     ElevatedButton(
+                //       onPressed: () => _getImage(ImageSource.gallery),
+                //       child: Text('Choose Image'),
+                //     ),
+                //     const SizedBox(width: 10),
+                //     ElevatedButton(
+                //       onPressed: () => _getImage(ImageSource.camera),
+                //       child: Text('Take Photo'),
+                //     ),
+                //   ],
+                // ),
+                // const SizedBox(height: 20),
+                TextFormField(
+                  controller: _titleController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter title',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Please select title';
+                    }
+                    return null;
+                  },
                 ),
-                popupProps: PopupProps.menu(
-                  showSearchBox: true,
-                ),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedSkill = newValue;
-                  });
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Please select a Skill';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 10),
-              DropdownSearch<String>(
-                items: bloodGroups,
-                selectedItem: _selectedBloodGroup,
-                dropdownDecoratorProps: DropDownDecoratorProps(
-                  dropdownSearchDecoration: InputDecoration(
-                    hintText: "Please Select Blood Group",
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _eventTypeController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter Event Type',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Please select event Type';
+                    }
+                    return null;
+                  },
                 ),
-                popupProps: PopupProps.menu(
-                  showSearchBox: true,
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter Description',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Please Enter Description';
+                    }
+                    return null;
+                  },
                 ),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedBloodGroup = newValue;
-                  });
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Please select a blood Group';
-                  }
-                  return null;
-                },
-              ),
 
-
-              const SizedBox(height: 10),
-              DropdownSearch<String>(
-                items: subDistricts,
-                selectedItem: _selectedSubDistrict,
-                dropdownDecoratorProps: DropDownDecoratorProps(
-                  dropdownSearchDecoration: InputDecoration(
-                    hintText: "Please Select Sub-District",
+                TextFormField(
+                  controller: _locationDetailController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter Location Details',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Please give location details';
+                    }
+                    return null;
+                  },
                 ),
-                popupProps: PopupProps.menu(
-                  showSearchBox: true,
+                const SizedBox(height: 10),
+                DropdownSearch<String>(
+                  items: skills,
+                  selectedItem: _selectedSkill,
+                  dropdownDecoratorProps: DropDownDecoratorProps(
+                    dropdownSearchDecoration: InputDecoration(
+                      hintText: "Please Select skill",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  popupProps: PopupProps.menu(
+                    showSearchBox: true,
+                  ),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedSkill = newValue;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Please select a Skill';
+                    }
+                    return null;
+                  },
                 ),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedSubDistrict = newValue;
-                  });
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Please select a Sub-District';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 10),
-              DropdownSearch<String>(
+                const SizedBox(height: 10),
 
-                items: districts,
-                selectedItem: _selectedDistrict,
-                dropdownDecoratorProps: DropDownDecoratorProps(
-                  dropdownSearchDecoration: InputDecoration(
-                    hintText: "Please Select District",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
+                const SizedBox(height: 10),
+                DropdownSearch<String>(
+                  items: subDistricts,
+                  selectedItem: _selectedSubDistrict,
+                  dropdownDecoratorProps: DropDownDecoratorProps(
+                    dropdownSearchDecoration: InputDecoration(
+                      hintText: "Please Select Sub-District",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
+                  popupProps: PopupProps.menu(
+                    showSearchBox: true,
+                  ),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedSubDistrict = newValue;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Please select a Sub-District';
+                    }
+                    return null;
+                  },
                 ),
-                popupProps: PopupProps.menu(
-                  showSearchBox: true,
+                const SizedBox(height: 10),
+                DropdownSearch<String>(
+
+                  items: districts,
+                  selectedItem: _selectedDistrict,
+                  dropdownDecoratorProps: DropDownDecoratorProps(
+                    dropdownSearchDecoration: InputDecoration(
+                      hintText: "Please Select District",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  popupProps: PopupProps.menu(
+                    showSearchBox: true,
+                  ),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedDistrict = newValue;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Please select District';
+                    }
+                    return null;
+                  },
                 ),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedDistrict = newValue;
-                  });
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Please select District';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => _selectDate(context, (date) {
-                        setState(() {
-                          _eventDate = date;
-                        });
-                      }),
-                      child: Text(_eventDate == null
-                          ? 'Select Event Date'
-                          : DateFormat.yMd().format(_eventDate!)),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => _selectDate(context, (date) {
+                          setState(() {
+                            _eventDate = date;
+                          });
+                        }),
+                        child: Text(_eventDate == null
+                            ? 'Select Event Date'
+                            : DateFormat.yMd().format(_eventDate!)),
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => _selectDate(context, (date) {
-                        setState(() {
-                          _lastApplicationDate = date;
-                        });
-                      }),
-                      child: Text(_lastApplicationDate == null
-                          ? 'Select Last Application Date'
-                          : DateFormat.yMd().format(_lastApplicationDate!)),
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => _selectDate(context, (date) {
+                          setState(() {
+                            _lastApplicationDate = date;
+                          });
+                        }),
+                        child: Text(_lastApplicationDate == null
+                            ? 'Select Last Application Date'
+                            : DateFormat.yMd().format(_lastApplicationDate!)),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 50),
-              ElevatedButton(
-                onPressed: addEvent,
-                child: const Text('Submit'),
-              ),
-            ],
+                  ],
+                ),
+                const SizedBox(height: 50),
+                ElevatedButton(
+                  onPressed: (){
+                    if (_formKey.currentState!.validate()){
+                      addEvent();
+                    }
+                  },
+                  child: const Text('Submit'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

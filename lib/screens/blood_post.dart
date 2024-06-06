@@ -1,10 +1,10 @@
-import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+
 import 'package:intl/intl.dart'; // Add this for date formatting
 import 'package:sahayagi/widget/common_widget.dart';
 
@@ -22,8 +22,7 @@ class _BloodPostState extends State<BloodPost> {
   final TextEditingController _hospitalController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _locationDetailController =
-      TextEditingController();
+  final TextEditingController _locationDetailController = TextEditingController();
 
   String? _selectedBloodGroup;
   String? _selectedSubDistrict;
@@ -318,7 +317,11 @@ class _BloodPostState extends State<BloodPost> {
                       ),
                       const SizedBox(height: 50),
                       ElevatedButton(
-                        onPressed: addBloodNeedingInfo,
+                        onPressed: (){
+                          if (_formKey.currentState!.validate()){
+                            addBloodNeedingInfo();
+                          }
+                        },
                         child: const Text('Submit'),
                       ),
                     ],

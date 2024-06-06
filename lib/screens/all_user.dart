@@ -62,16 +62,19 @@ class _AllUsersState extends State<AllUsers> {
                     children: [
                       ListTile(
                         title: Text(data['name'] ?? 'No Name', style: appFontStyle(18)),
-                        subtitle: Row(
-                          children: [
-                            Text(data['skill'] ?? 'Empty', style: appFontStyle(15)),
-                            Text(", "),
-                            Text(data['postOffice'] ?? 'Empty', style: appFontStyle(15)),
-                            Text(", "),
-                            Text(data['subDistrict'] ?? 'Empty', style: appFontStyle(15)),
-                            Text(", "),
-                            Text(data['district'] ?? 'Empty', style: appFontStyle(15)),
-                          ],
+                        subtitle: Flexible(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                Text(data['skill'] ?? 'Empty', style: appFontStyle(15)),
+                                Text(", "),
+                                Text(data['sub_district'] ?? 'Empty', style: appFontStyle(15)),
+                                Text(", "),
+                                Text(data['district'] ?? 'Empty', style: appFontStyle(15)),
+                              ],
+                            ),
+                          ),
                         ),
                       )
                     ],

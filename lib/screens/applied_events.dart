@@ -48,11 +48,20 @@ class _AppliedEventsState extends State<AppliedEvents> {
     }
 
     try {
+      // Delete the application from the user's applied_events sub-collection
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .collection('applied_events')
           .doc(eventId)
+          .delete();
+
+      // Delete the application from the event's applications sub-collection
+      await FirebaseFirestore.instance
+          .collection('events')
+          .doc(eventId)
+          .collection('applications')
+          .doc(user.uid)
           .delete();
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -100,7 +109,7 @@ class _AppliedEventsState extends State<AppliedEvents> {
               }
 
               return Container(
-                height: 350,
+
                 child: Card(
                   margin: EdgeInsets.symmetric(vertical: 8.0),
                   child: Padding(
@@ -137,10 +146,7 @@ class _AppliedEventsState extends State<AppliedEvents> {
                           'Location:',
                           style: appFontStyle(15, texColorDark, FontWeight.bold),
                         ),
-                        Text(
-                          'Post Office: ${eventData['post_office'] ?? 'N/A'}',
-                          style: appFontStyle(15),
-                        ),
+
                         Text(
                           'Sub District: ${eventData['sub_district'] ?? 'N/A'}',
                           style: appFontStyle(15),
@@ -149,7 +155,10 @@ class _AppliedEventsState extends State<AppliedEvents> {
                           'District: ${eventData['district'] ?? 'N/A'}',
                           style: appFontStyle(15),
                         ),
-                        Spacer(),
+                        Text(
+                          'loacation: ${eventData['location_details'] ?? 'N/A'}',
+                          style: appFontStyle(15),
+                        ),
                         ElevatedButton(
                           onPressed: () async {
                             bool confirmRemove = await showDialog(
