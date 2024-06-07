@@ -109,7 +109,7 @@ class _AppliedEventsState extends State<AppliedEvents> {
               }
 
               // Join the skills list into a comma-separated string
-
+              String skills = (eventData['skills'] as List<dynamic>?)?.join(', ') ?? 'N/A';
 
               return Container(
                 child: Card(

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sahayagi/screens/update_profile.dart';
+import 'package:sahayagi/screens/change_password.dart';  // Import the new screen
 
 import '../helpers/helper.dart';
 import '../widget/common_widget.dart';
@@ -104,6 +105,18 @@ class _AppDrawerState extends State<AppDrawer> {
                 );
               },
               child: Text("Edit Profile", style: appFontStyle(15, texColorDark, FontWeight.bold)),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 40.0, right: 40, top: 20),
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ChangePasswordScreen()),
+                );
+              },
+              child: Text("Change Password", style: appFontStyle(15, texColorDark, FontWeight.bold)),
             ),
           ),
         ],

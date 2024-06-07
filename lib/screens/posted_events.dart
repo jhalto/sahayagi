@@ -105,8 +105,10 @@ class _PostedEventsState extends State<PostedEvents> {
   }
 
   Widget _buildEventCard(BuildContext context, Map<String, dynamic> data, String documentId) {
+    String skills = (data['skills'] as List<dynamic>?)?.join(', ') ?? 'N/A';
+
     return Container(
-      height: 400,
+      height: 350,
       child: Card(
         margin: const EdgeInsets.symmetric(vertical: 8.0),
         child: Padding(
@@ -122,7 +124,7 @@ class _PostedEventsState extends State<PostedEvents> {
               const SizedBox(height: 10),
               Text('Event Type: ${data['event_type'] ?? 'N/A'}', style: appFontStyle(15)),
               const SizedBox(height: 10),
-              Text('Skill: ${data['skills'] ?? 'N/A'}', style: appFontStyle(15)),
+              Text("Needed Skill: ${skills}",style: appFontStyle(15,),),
               const SizedBox(height: 10),
               Text('Location:', style: appFontStyle(15, texColorDark, FontWeight.bold)),
               Text('Sub District: ${data['sub_district'] ?? 'N/A'}', style: appFontStyle(15)),
