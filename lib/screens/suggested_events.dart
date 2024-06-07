@@ -13,8 +13,7 @@ class AllEvents extends StatefulWidget {
 }
 
 class _AllEventsState extends State<AllEvents> {
-  String? _userSkill;
-  String? _userDistrict;
+  List<String> _userSkills = [];
   late Future<void> _fetchUserDetailsFuture;
 
   @override
@@ -32,8 +31,7 @@ class _AllEventsState extends State<AllEvents> {
     DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
     if (userDoc.exists) {
       setState(() {
-        _userSkill = userDoc['skill'];
-        _userDistrict = userDoc['district'];
+        _userSkills = List<String>.from(userDoc['skills'] ?? []); // Assuming 'skills' is a list of strings
       });
     } else {
       throw Exception("User document not found");
@@ -55,50 +53,32 @@ class _AllEventsState extends State<AllEvents> {
     return querySnapshot.docs;
   }
 
-  Future<List<DocumentSnapshot>> _getEventsBySkill() async {
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('events')
-        .where('skill', isEqualTo: _userSkill)
-        .get();
-
-    return querySnapshot.docs;
-  }
-
-  Future<List<DocumentSnapshot>> _getEventsByDistrict() async {
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('events')
-        .where('district', isEqualTo: _userDistrict)
-        .get();
-
-    return querySnapshot.docs;
-  }
-
-  Future<List<DocumentSnapshot>> _getAllEvents() async {
-    Set<String> seenEventIds = {};
-    List<DocumentSnapshot> allEvents = [];
-
-    // Fetch events by skill
-    List<DocumentSnapshot> eventsBySkill = await _getEventsBySkill();
-    for (var event in eventsBySkill) {
-      if (seenEventIds.add(event.id)) {
-        allEvents.add(event);
-      }
+  Future<List<DocumentSnapshot>> _getEventsBySkills() async {
+    if (_userSkills.isEmpty) {
+      return [];
     }
 
-    // Fetch events by district
-    List<DocumentSnapshot> eventsByDistrict = await _getEventsByDistrict();
-    for (var event in eventsByDistrict) {
-      if (seenEventIds.add(event.id)) {
-        allEvents.add(event);
-      }
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception("User not logged in");
     }
+
+    // Fetch all events that match the user's skills
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('events')
+        .where('skills', arrayContainsAny: _userSkills) // Query events that match any of the user's skills
+        .get();
 
     // Fetch applied events to exclude them from the suggestions
     List<DocumentSnapshot> appliedEvents = await _getAppliedEvents();
     Set<String> appliedEventIds = appliedEvents.map((doc) => doc.id).toSet();
 
     // Exclude applied events from allEvents
+    List<DocumentSnapshot> allEvents = querySnapshot.docs;
     allEvents = allEvents.where((event) => !appliedEventIds.contains(event.id)).toList();
+
+    // Exclude events posted by the current user
+    allEvents = allEvents.where((event) => event['user_id'] != user.uid).toList();
 
     return allEvents;
   }
@@ -161,7 +141,7 @@ class _AllEventsState extends State<AllEvents> {
         ],
       ),
       body: FutureBuilder<List<DocumentSnapshot>>(
-        future: _getAllEvents(),
+        future: _fetchUserDetailsFuture.then((_) => _getEventsBySkills()),
         builder: (BuildContext context, AsyncSnapshot<List<DocumentSnapshot>> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -171,18 +151,23 @@ class _AllEventsState extends State<AllEvents> {
             return Center(child: Text('Something went wrong: ${snapshot.error}'));
           }
 
-          List<DocumentSnapshot> allEvents = snapshot.data ?? [];
-          if (allEvents.isEmpty) {
+          List<DocumentSnapshot> events = snapshot.data ?? [];
+          if (events.isEmpty) {
             return Center(child: Text('No matching events found'));
           }
 
           return ListView.builder(
-            itemCount: allEvents.length,
+            itemCount: events.length,
             itemBuilder: (BuildContext context, int index) {
-              DocumentSnapshot document = allEvents[index];
+              DocumentSnapshot document = events[index];
               Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
-              return Container(
+              List<String> eventSkills = List<String>.from(data['skills'] ?? []);
 
+              // Find matching skills
+
+              List<String> matchingSkills = _userSkills.where((skill) => eventSkills.contains(skill)).toList();
+
+              return Container(
                 child: Card(
                   margin: EdgeInsets.symmetric(vertical: 8.0),
                   child: Padding(
@@ -198,8 +183,12 @@ class _AllEventsState extends State<AllEvents> {
                         SizedBox(height: 10),
                         Text('Event Type: ${data['event_type'] ?? 'N/A'}', style: appFontStyle(15)),
                         SizedBox(height: 10),
-                        Text('Skill: ${data['skill'] ?? 'N/A'}', style: appFontStyle(15)),
+                        Text('Skills Required:', style: appFontStyle(15, texColorDark, FontWeight.bold)),
+                        Text(eventSkills.join(', '), style: appFontStyle(15)),
                         SizedBox(height: 10),
+                        SizedBox(height: 10),
+                        if (matchingSkills.isNotEmpty)
+                          Text('Matching Skills: ${matchingSkills.join(', ')}', style: appFontStyle(15, Colors.green)),
                         Text('Location:', style: appFontStyle(15, texColorDark, FontWeight.bold)),
                         Text('Sub District: ${data['sub_district'] ?? 'N/A'}', style: appFontStyle(15)),
                         Text('District: ${data['district'] ?? 'N/A'}', style: appFontStyle(15)),
@@ -208,7 +197,7 @@ class _AllEventsState extends State<AllEvents> {
                             _registerForEvent(document.id);
                           },
                           child: Text("Apply"),
-                        )
+                        ),
                       ],
                     ),
                   ),

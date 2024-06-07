@@ -73,7 +73,7 @@ class _AppDrawerState extends State<AppDrawer> {
                     title: Text("Blood Group: ${userData['blood_group'] ?? ''}", style: appFontStyle(20, texColorLight)),
                   ),
                   ListTile(
-                    title: Text("Skill: ${userData['skill'] ?? ''}", style: appFontStyle(20, texColorLight)),
+                    title: Text("Skills: ${_formatSkills(userData['skills'])}", style: appFontStyle(20, texColorLight)),
                   ),
                   ListTile(
                     title: Text("SubDistrict: ${userData['sub_district'] ?? ''}", style: appFontStyle(20, texColorLight)),
@@ -109,5 +109,12 @@ class _AppDrawerState extends State<AppDrawer> {
         ],
       ),
     );
+  }
+
+  String _formatSkills(dynamic skills) {
+    if (skills is List) {
+      return skills.join(', ');
+    }
+    return '';
   }
 }

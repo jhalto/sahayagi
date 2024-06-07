@@ -26,8 +26,6 @@ class _SignUpState extends State<SignUp> {
 
   // List of skills to be displayed in the dropdown
 
-  String? _selectedSkill;
-
   String? _selectedBloodGroup;
   String? _selectedSubDistrict;
   String? _selectedDistrict;
@@ -139,33 +137,7 @@ class _SignUpState extends State<SignUp> {
                         ),
 
                         const SizedBox(height: 10),
-                        DropdownSearch<String>(
-                          items: skills,
-                          selectedItem: _selectedSkill,
-                          dropdownDecoratorProps: DropDownDecoratorProps(
-                            dropdownSearchDecoration: InputDecoration(
-                              hintText: "Please Select skill",
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                          ),
-                          popupProps: PopupProps.menu(
-                            showSearchBox: true,
-                          ),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              _selectedSkill = newValue;
-                            });
-                          },
-                          validator: (value) {
-                            if (value == null) {
-                              return 'Please select a Skill';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 10),
+
                         DropdownSearch<String>(
                           items: bloodGroups,
                           selectedItem: _selectedBloodGroup,
@@ -262,13 +234,13 @@ class _SignUpState extends State<SignUp> {
                       var name = _nameController.text;
                       var phone = _phoneController.text;
                       var age = _ageController.text;
-                      var skill = _selectedSkill;
+
                       var bloodGroup = _selectedBloodGroup;
 
                       var subDistrict = _selectedSubDistrict;
                       var district = _selectedDistrict;
 
-                      MyHelper().signUp(email, password, name, phone,age, skill!, bloodGroup!, subDistrict!, district!, context);
+                      MyHelper().signUp(email, password, name, phone,age, bloodGroup!, subDistrict!, district!, context);
                     }
                   },
                   child: const Text("Sign Up"),

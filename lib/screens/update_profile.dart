@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:sahayagi/widget/covex_bar.dart';
+import 'package:multi_select_flutter/multi_select_flutter.dart';
 
 import '../models/location_model.dart';
 import '../models/user_models.dart';
@@ -22,8 +22,7 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
-  String? _selectedSkill;
-
+  List<String> _selectedSkills = [];
   String? _selectedBloodGroup;
   String? _selectedSubDistrict;
   String? _selectedDistrict;
@@ -49,7 +48,7 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
               _nameController.text = data['name'] ?? '';
               _phoneController.text = data['phone'] ?? '';
               _ageController.text = data['age'] ?? '';
-              _selectedSkill = data['skill'] ?? '';
+              _selectedSkills = List<String>.from(data['skills'] ?? []);
               _selectedBloodGroup = data['blood_group'] ?? '';
               _selectedSubDistrict = data['sub_district'] ?? '';
               _selectedDistrict = data['district'] ?? '';
@@ -78,7 +77,7 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
           'name': _nameController.text,
           'phone': _phoneController.text,
           'age': _ageController.text,
-          'skill': _selectedSkill,
+          'skills': _selectedSkills,
           'blood_group': _selectedBloodGroup,
           'sub_district': _selectedSubDistrict,
           'district': _selectedDistrict,
@@ -197,31 +196,34 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
                 ),
               ),
               SizedBox(height: 10),
-              DropdownSearch<String>(
-                items: skills,
-                selectedItem: _selectedSkill,
-                dropdownDecoratorProps: DropDownDecoratorProps(
-                  dropdownSearchDecoration: InputDecoration(
-                    hintText: "Please Select skill",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+              MultiSelectDialogField<String>(
+                items: skills.map((skill) => MultiSelectItem<String>(skill, skill)).toList(),
+                title: Text("Skills"),
+                searchable: true,  // Enable search
+                selectedColor: Colors.blue,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.grey,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                buttonIcon: Icon(
+                  Icons.arrow_drop_down,
+                  color: Colors.grey,
+                ),
+                buttonText: Text(
+                  "Select Skills",
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 16,
                   ),
                 ),
-                popupProps: PopupProps.menu(
-                  showSearchBox: true,
-                ),
-                onChanged: (String? newValue) {
+                onConfirm: (List<String> selectedValues) {
                   setState(() {
-                    _selectedSkill = newValue;
+                    _selectedSkills = selectedValues;
                   });
                 },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Please select a Skill';
-                  }
-                  return null;
-                },
+                initialValue: _selectedSkills,
               ),
               const SizedBox(height: 10),
               DropdownSearch<String>(
@@ -250,8 +252,6 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
                   return null;
                 },
               ),
-
-
               const SizedBox(height: 10),
               DropdownSearch<String>(
                 items: subDistricts,
@@ -281,7 +281,6 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
               ),
               const SizedBox(height: 10),
               DropdownSearch<String>(
-
                 items: districts,
                 selectedItem: _selectedDistrict,
                 dropdownDecoratorProps: DropDownDecoratorProps(

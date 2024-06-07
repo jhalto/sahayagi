@@ -108,8 +108,10 @@ class _AppliedEventsState extends State<AppliedEvents> {
                 return Container();
               }
 
-              return Container(
+              // Join the skills list into a comma-separated string
+              String skills = (eventData['skills'] as List<dynamic>?)?.join(', ') ?? 'N/A';
 
+              return Container(
                 child: Card(
                   margin: EdgeInsets.symmetric(vertical: 8.0),
                   child: Padding(
@@ -138,7 +140,7 @@ class _AppliedEventsState extends State<AppliedEvents> {
                         ),
                         SizedBox(height: 10),
                         Text(
-                          'Skill: ${eventData['skill'] ?? 'N/A'}',
+                          'Skill: $skills',
                           style: appFontStyle(15),
                         ),
                         SizedBox(height: 10),
@@ -146,7 +148,6 @@ class _AppliedEventsState extends State<AppliedEvents> {
                           'Location:',
                           style: appFontStyle(15, texColorDark, FontWeight.bold),
                         ),
-
                         Text(
                           'Sub District: ${eventData['sub_district'] ?? 'N/A'}',
                           style: appFontStyle(15),
@@ -156,7 +157,7 @@ class _AppliedEventsState extends State<AppliedEvents> {
                           style: appFontStyle(15),
                         ),
                         Text(
-                          'loacation: ${eventData['location_details'] ?? 'N/A'}',
+                          'Location: ${eventData['location_details'] ?? 'N/A'}',
                           style: appFontStyle(15),
                         ),
                         ElevatedButton(

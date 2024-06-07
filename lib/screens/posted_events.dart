@@ -106,7 +106,7 @@ class _PostedEventsState extends State<PostedEvents> {
 
   Widget _buildEventCard(BuildContext context, Map<String, dynamic> data, String documentId) {
     return Container(
-      height: 350,
+      height: 400,
       child: Card(
         margin: const EdgeInsets.symmetric(vertical: 8.0),
         child: Padding(
@@ -122,10 +122,9 @@ class _PostedEventsState extends State<PostedEvents> {
               const SizedBox(height: 10),
               Text('Event Type: ${data['event_type'] ?? 'N/A'}', style: appFontStyle(15)),
               const SizedBox(height: 10),
-              Text('Skill: ${data['skill'] ?? 'N/A'}', style: appFontStyle(15)),
+              Text('Skill: ${data['skills'] ?? 'N/A'}', style: appFontStyle(15)),
               const SizedBox(height: 10),
               Text('Location:', style: appFontStyle(15, texColorDark, FontWeight.bold)),
-              Text('Post Office: ${data['post_office'] ?? 'N/A'}', style: appFontStyle(15)),
               Text('Sub District: ${data['sub_district'] ?? 'N/A'}', style: appFontStyle(15)),
               Text('District: ${data['district'] ?? 'N/A'}', style: appFontStyle(15)),
               const Spacer(),

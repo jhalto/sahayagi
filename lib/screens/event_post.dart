@@ -1,11 +1,13 @@
-import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+
 import 'package:intl/intl.dart';  // Add this for date formatting
+import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
+import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:sahayagi/widget/common_widget.dart';
 
 import '../models/location_model.dart';
@@ -24,7 +26,7 @@ class _EventPostState extends State<EventPost> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _eventTypeController = TextEditingController();
   final TextEditingController _locationDetailController = TextEditingController();
-  String? _selectedSkill;
+  List<String> _selectedSkills = [];
   String? _selectedSubDistrict;
   String? _selectedDistrict;
   DateTime? _eventDate;
@@ -39,7 +41,7 @@ class _EventPostState extends State<EventPost> {
         _descriptionController.text.isEmpty ||
         _eventTypeController.text.isEmpty ||
         _locationDetailController.text.isEmpty ||
-        _selectedSkill!.isEmpty ||
+        _selectedSkills!.isEmpty ||
         _selectedSubDistrict!.isEmpty ||
         _selectedDistrict!.isEmpty ||
         _eventDate == null ||
@@ -82,7 +84,7 @@ class _EventPostState extends State<EventPost> {
         'description': _descriptionController.text,
         'event_type': _eventTypeController.text,
         'location_details': _locationDetailController.text,
-        'skill': _selectedSkill,
+        'skills': _selectedSkills,
         'sub_district': _selectedDistrict,
         'district': _selectedDistrict,
         'user_id': user.uid,
@@ -140,6 +142,7 @@ class _EventPostState extends State<EventPost> {
     _descriptionController.clear();
     _eventTypeController.clear();
     _locationDetailController.clear();
+    _selectedSkills.clear();
 
     setState(() {
       // _image = null;
@@ -276,31 +279,34 @@ class _EventPostState extends State<EventPost> {
                   },
                 ),
                 const SizedBox(height: 10),
-                DropdownSearch<String>(
-                  items: skills,
-                  selectedItem: _selectedSkill,
-                  dropdownDecoratorProps: DropDownDecoratorProps(
-                    dropdownSearchDecoration: InputDecoration(
-                      hintText: "Please Select skill",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                MultiSelectDialogField<String>(
+                  items: skills.map((skill) => MultiSelectItem<String>(skill, skill)).toList(),
+                  title: Text("Skills"),
+                  searchable: true,  // Enable search
+                  selectedColor: Colors.blue,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.grey,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  buttonIcon: Icon(
+                    Icons.arrow_drop_down,
+                    color: Colors.grey,
+                  ),
+                  buttonText: Text(
+                    "Select Skills",
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 16,
                     ),
                   ),
-                  popupProps: PopupProps.menu(
-                    showSearchBox: true,
-                  ),
-                  onChanged: (String? newValue) {
+                  onConfirm: (List<String> selectedValues) {
                     setState(() {
-                      _selectedSkill = newValue;
+                      _selectedSkills = selectedValues;
                     });
                   },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Please select a Skill';
-                    }
-                    return null;
-                  },
+                  initialValue: _selectedSkills,
                 ),
                 const SizedBox(height: 10),
 

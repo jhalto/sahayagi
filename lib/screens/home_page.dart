@@ -102,7 +102,7 @@ class _HomePageState extends State<HomePage> {
                         Text('Event Type: ${data['event_type'] ?? 'N/A'}',
                             style: appFontStyle(15)),
                         SizedBox(height: 10),
-                        Text('Skill: ${data['skill'] ?? 'N/A'}',
+                        Text('Skill: ${data['skills'] ?? 'N/A'}',
                             style: appFontStyle(15)),
                         SizedBox(height: 10),
                         Text('Location:',

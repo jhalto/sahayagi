@@ -8,7 +8,7 @@ import 'package:sahayagi/screens/sign_in.dart';
 import '../widget/covex_bar.dart';
 
 class MyHelper {
-  Future<void> signUp(String email, String password, String name, String phone,String age,String skill, String bloodGroup,
+  Future<void> signUp(String email, String password, String name, String phone,String age, String bloodGroup,
       String subDistrict, String district,
       BuildContext context) async {
     try {
@@ -25,7 +25,6 @@ class MyHelper {
           'name': name,
           'phone': phone,
           'age': age,
-          'skill': skill,
           'blood_group': bloodGroup,
           'sub_district': subDistrict,
           'district': district,
