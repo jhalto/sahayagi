@@ -195,6 +195,9 @@ class _AllEventsState extends State<AllEvents> {
                         ElevatedButton(
                           onPressed: () {
                             _registerForEvent(document.id);
+                            setState(() {
+
+                            });
                           },
                           child: Text("Apply"),
                         ),
