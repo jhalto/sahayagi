@@ -13,7 +13,11 @@ import 'package:sahayagi/widget/covex_bar.dart';
 void main() async{
  WidgetsFlutterBinding.ensureInitialized();
  await Firebase.initializeApp(
-     options: FirebaseOptions(apiKey: 'AIzaSyBF89cJO521foKAYZ_F_a9sdwoeHcE-ycg', appId: '1:1063292408157:android:9095287c6f2a71a76058b4', messagingSenderId: '1063292408157', projectId: 'sahayagi-6f549',storageBucket: 'sahayagi-6f549.appspot.com')
+     options: FirebaseOptions(apiKey: 'AIzaSyBF89cJO521foKAYZ_F_a9sdwoeHcE-ycg',
+       appId: '1:1063292408157:android:9095287c6f2a71a76058b4',
+       messagingSenderId: '1063292408157',
+       projectId: 'sahayagi-6f549',
+       storageBucket: 'sahayagi-6f549.appspot.com',)
  );
  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
  runApp(const MyApp());

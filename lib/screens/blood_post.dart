@@ -1,11 +1,8 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
 import 'package:flutter/material.dart';
-
-import 'package:intl/intl.dart'; // Add this for date formatting
+import 'package:intl/intl.dart';
 import 'package:sahayagi/widget/common_widget.dart';
 
 import '../models/location_model.dart';
@@ -21,6 +18,7 @@ class BloodPost extends StatefulWidget {
 class _BloodPostState extends State<BloodPost> {
   final TextEditingController _hospitalController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _bloodQuantityController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _locationDetailController = TextEditingController();
 
@@ -36,11 +34,12 @@ class _BloodPostState extends State<BloodPost> {
   Future<void> addBloodNeedingInfo() async {
     if (_hospitalController.text.isEmpty ||
         _descriptionController.text.isEmpty ||
+        _bloodQuantityController.text.isEmpty ||
         _phoneController.text.isEmpty ||
         _locationDetailController.text.isEmpty ||
-        _selectedBloodGroup!.isEmpty ||
-        _selectedSubDistrict!.isEmpty ||
-        _selectedDistrict!.isEmpty ||
+        _selectedBloodGroup == null ||
+        _selectedSubDistrict == null ||
+        _selectedDistrict == null ||
         _operationDate == null ||
         _lastApplicationDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -66,13 +65,12 @@ class _BloodPostState extends State<BloodPost> {
           .get();
       String? userName = userDoc['name'];
 
-      // Upload image to Firebase Storage if an image is selected
-
       CollectionReference bloodDonation =
-          FirebaseFirestore.instance.collection('blood_donation');
+      FirebaseFirestore.instance.collection('blood_donation');
       await bloodDonation.add({
         'hospital': _hospitalController.text,
         'description': _descriptionController.text,
+        'blood_quantity': _bloodQuantityController.text,
         'phone': _phoneController.text,
         'location_details': _locationDetailController.text,
         'blood_group': _selectedBloodGroup,
@@ -103,12 +101,16 @@ class _BloodPostState extends State<BloodPost> {
   void _clearTextFields() {
     _hospitalController.clear();
     _descriptionController.clear();
+    _bloodQuantityController.clear();
     _phoneController.clear();
     _locationDetailController.clear();
 
     setState(() {
       _operationDate = null;
       _lastApplicationDate = null;
+      _selectedBloodGroup = null;
+      _selectedSubDistrict = null;
+      _selectedDistrict = null;
     });
   }
 
@@ -137,197 +139,213 @@ class _BloodPostState extends State<BloodPost> {
         child: _isLoading
             ? Center(child: CircularProgressIndicator())
             : Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 30),
-                      TextFormField(
-                        controller: _hospitalController,
-                        decoration: InputDecoration(
-                          hintText: 'Enter Hospital Name',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please Enter hospital';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: _descriptionController,
-                        decoration: InputDecoration(
-                          hintText: 'Enter Description',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter Description';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: _phoneController,
-                        decoration: InputDecoration(
-                          hintText: 'Enter phone number',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter phone number';
-                          }
-                          return null;
-                        },
-                      ),
-                      TextFormField(
-                        controller: _locationDetailController,
-                        decoration: InputDecoration(
-                          hintText: 'Enter Location Details',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter location';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      DropdownSearch<String>(
-                        items: bloodGroups,
-                        selectedItem: _selectedBloodGroup,
-                        dropdownDecoratorProps: DropDownDecoratorProps(
-                          dropdownSearchDecoration: InputDecoration(
-                            hintText: "Please Select Blood Group",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                        popupProps: PopupProps.menu(
-                          showSearchBox: true,
-                        ),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedBloodGroup = newValue;
-                          });
-                        },
-                        validator: (value) {
-                          if (value == null) {
-                            return 'Please select a blood Group';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      DropdownSearch<String>(
-                        items: subDistricts,
-                        selectedItem: _selectedSubDistrict,
-                        dropdownDecoratorProps: DropDownDecoratorProps(
-                          dropdownSearchDecoration: InputDecoration(
-                            hintText: "Please Select Sub-District",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                        popupProps: PopupProps.menu(
-                          showSearchBox: true,
-                        ),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedSubDistrict = newValue;
-                          });
-                        },
-                        validator: (value) {
-                          if (value == null) {
-                            return 'Please select a Sub-District';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      DropdownSearch<String>(
-                        items: districts,
-                        selectedItem: _selectedDistrict,
-                        dropdownDecoratorProps: DropDownDecoratorProps(
-                          dropdownSearchDecoration: InputDecoration(
-                            hintText: "Please Select District",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                        popupProps: PopupProps.menu(
-                          showSearchBox: true,
-                        ),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedDistrict = newValue;
-                          });
-                        },
-                        validator: (value) {
-                          if (value == null) {
-                            return 'Please select District';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextButton(
-                              onPressed: () => _selectDate(context, (date) {
-                                setState(() {
-                                  _operationDate = date;
-                                });
-                              }),
-                              child: Text(_operationDate == null
-                                  ? 'Select Event Date'
-                                  : DateFormat.yMd().format(_operationDate!)),
-                            ),
-                          ),
-                          Expanded(
-                            child: TextButton(
-                              onPressed: () => _selectDate(context, (date) {
-                                setState(() {
-                                  _lastApplicationDate = date;
-                                });
-                              }),
-                              child: Text(_lastApplicationDate == null
-                                  ? 'Select Last Application Date'
-                                  : DateFormat.yMd()
-                                      .format(_lastApplicationDate!)),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 50),
-                      ElevatedButton(
-                        onPressed: (){
-                          if (_formKey.currentState!.validate()){
-                            addBloodNeedingInfo();
-                          }
-                        },
-                        child: const Text('Submit'),
-                      ),
-                    ],
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                const SizedBox(height: 30),
+                TextFormField(
+                  controller: _hospitalController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter Hospital Name',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please Enter hospital';
+                    }
+                    return null;
+                  },
                 ),
-              ),
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter Description',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter Description';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _bloodQuantityController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter Quantity',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter Quantity';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _phoneController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter phone number',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter phone number';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _locationDetailController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter Location Details',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter location';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 10),
+                DropdownSearch<String>(
+                  items: bloodGroups,
+                  selectedItem: _selectedBloodGroup,
+                  dropdownDecoratorProps: DropDownDecoratorProps(
+                    dropdownSearchDecoration: InputDecoration(
+                      hintText: "Please Select Blood Group",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  popupProps: PopupProps.menu(
+                    showSearchBox: true,
+                  ),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedBloodGroup = newValue;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Please select a blood Group';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 10),
+                DropdownSearch<String>(
+                  items: subDistricts,
+                  selectedItem: _selectedSubDistrict,
+                  dropdownDecoratorProps: DropDownDecoratorProps(
+                    dropdownSearchDecoration: InputDecoration(
+                      hintText: "Please Select Sub-District",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  popupProps: PopupProps.menu(
+                    showSearchBox: true,
+                  ),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedSubDistrict = newValue;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Please select a Sub-District';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 10),
+                DropdownSearch<String>(
+                  items: districts,
+                  selectedItem: _selectedDistrict,
+                  dropdownDecoratorProps: DropDownDecoratorProps(
+                    dropdownSearchDecoration: InputDecoration(
+                      hintText: "Please Select District",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  popupProps: PopupProps.menu(
+                    showSearchBox: true,
+                  ),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedDistrict = newValue;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Please select District';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => _selectDate(context, (date) {
+                          setState(() {
+                            _operationDate = date;
+                          });
+                        }),
+                        child: Text(_operationDate == null
+                            ? 'Select Event Date'
+                            : DateFormat.yMd().format(_operationDate!)),
+                      ),
+                    ),
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => _selectDate(context, (date) {
+                          setState(() {
+                            _lastApplicationDate = date;
+                          });
+                        }),
+                        child: Text(_lastApplicationDate == null
+                            ? 'Select Last Application Date'
+                            : DateFormat.yMd()
+                            .format(_lastApplicationDate!)),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 50),
+                ElevatedButton(
+                  onPressed: (){
+                    if (_formKey.currentState!.validate()){
+                      addBloodNeedingInfo();
+                    }
+                  },
+                  child: const Text('Submit'),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

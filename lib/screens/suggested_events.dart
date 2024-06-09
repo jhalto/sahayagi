@@ -14,12 +14,11 @@ class AllEvents extends StatefulWidget {
 
 class _AllEventsState extends State<AllEvents> {
   List<String> _userSkills = [];
-  late Future<void> _fetchUserDetailsFuture;
 
   @override
   void initState() {
     super.initState();
-    _fetchUserDetailsFuture = _fetchUserDetails();
+    _fetchUserDetails();
   }
 
   Future<void> _fetchUserDetails() async {
@@ -38,49 +37,43 @@ class _AllEventsState extends State<AllEvents> {
     }
   }
 
-  Future<List<DocumentSnapshot>> _getAppliedEvents() async {
+  Stream<List<DocumentSnapshot>> _getEventsBySkills() {
+    if (_userSkills.isEmpty) {
+      return Stream.value([]);
+    }
+
     User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       throw Exception("User not logged in");
     }
 
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+    // Fetch applied events to exclude them from the suggestions
+    Stream<List<DocumentSnapshot>> appliedEventsStream = FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
         .collection('applied_events')
-        .get();
-
-    return querySnapshot.docs;
-  }
-
-  Future<List<DocumentSnapshot>> _getEventsBySkills() async {
-    if (_userSkills.isEmpty) {
-      return [];
-    }
-
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      throw Exception("User not logged in");
-    }
+        .snapshots()
+        .map((querySnapshot) => querySnapshot.docs);
 
     // Fetch all events that match the user's skills
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+    Stream<List<DocumentSnapshot>> eventsStream = FirebaseFirestore.instance
         .collection('events')
         .where('skills', arrayContainsAny: _userSkills) // Query events that match any of the user's skills
-        .get();
+        .snapshots()
+        .map((querySnapshot) => querySnapshot.docs);
 
-    // Fetch applied events to exclude them from the suggestions
-    List<DocumentSnapshot> appliedEvents = await _getAppliedEvents();
-    Set<String> appliedEventIds = appliedEvents.map((doc) => doc.id).toSet();
+    return eventsStream.asyncMap((allEvents) async {
+      List<DocumentSnapshot> appliedEvents = await appliedEventsStream.first;
+      Set<String> appliedEventIds = appliedEvents.map((doc) => doc.id).toSet();
 
-    // Exclude applied events from allEvents
-    List<DocumentSnapshot> allEvents = querySnapshot.docs;
-    allEvents = allEvents.where((event) => !appliedEventIds.contains(event.id)).toList();
+      // Exclude applied events from allEvents
+      allEvents = allEvents.where((event) => !appliedEventIds.contains(event.id)).toList();
 
-    // Exclude events posted by the current user
-    allEvents = allEvents.where((event) => event['user_id'] != user.uid).toList();
+      // Exclude events posted by the current user
+      allEvents = allEvents.where((event) => event['user_id'] != user.uid).toList();
 
-    return allEvents;
+      return allEvents;
+    });
   }
 
   Future<void> _registerForEvent(String eventId) async {
@@ -119,9 +112,22 @@ class _AllEventsState extends State<AllEvents> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Successfully applied for the event')));
+
+      // Trigger rebuild to refresh the events list
+      setState(() {});
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to apply for the event: $e')));
     }
+  }
+
+  Future<void> _navigateToAppliedEvents() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AppliedEvents(),
+      ),
+    );
+    _fetchUserDetails(); // Refresh user details when returning
   }
 
   @override
@@ -133,15 +139,13 @@ class _AllEventsState extends State<AllEvents> {
         centerTitle: true,
         actions: [
           IconButton(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => AppliedEvents()));
-            },
+            onPressed: _navigateToAppliedEvents,
             icon: Icon(Icons.app_registration_rounded),
           ),
         ],
       ),
-      body: FutureBuilder<List<DocumentSnapshot>>(
-        future: _fetchUserDetailsFuture.then((_) => _getEventsBySkills()),
+      body: StreamBuilder<List<DocumentSnapshot>>(
+        stream: _getEventsBySkills(),
         builder: (BuildContext context, AsyncSnapshot<List<DocumentSnapshot>> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -164,7 +168,6 @@ class _AllEventsState extends State<AllEvents> {
               List<String> eventSkills = List<String>.from(data['skills'] ?? []);
 
               // Find matching skills
-
               List<String> matchingSkills = _userSkills.where((skill) => eventSkills.contains(skill)).toList();
 
               return Container(
@@ -186,7 +189,6 @@ class _AllEventsState extends State<AllEvents> {
                         Text('Skills Required:', style: appFontStyle(15, texColorDark, FontWeight.bold)),
                         Text(eventSkills.join(', '), style: appFontStyle(15)),
                         SizedBox(height: 10),
-                        SizedBox(height: 10),
                         if (matchingSkills.isNotEmpty)
                           Text('Matching Skills: ${matchingSkills.join(', ')}', style: appFontStyle(15, Colors.green)),
                         Text('Location:', style: appFontStyle(15, texColorDark, FontWeight.bold)),
@@ -195,9 +197,6 @@ class _AllEventsState extends State<AllEvents> {
                         ElevatedButton(
                           onPressed: () {
                             _registerForEvent(document.id);
-                            setState(() {
-
-                            });
                           },
                           child: Text("Apply"),
                         ),

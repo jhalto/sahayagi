@@ -1,17 +1,14 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
 import 'package:flutter/material.dart';
-
-import 'package:intl/intl.dart';  // Add this for date formatting
+import 'package:intl/intl.dart';
 import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
+import 'package:sahayagi/models/events_model.dart';
+import 'package:sahayagi/models/location_model.dart';
+import 'package:sahayagi/models/user_models.dart';
 import 'package:sahayagi/widget/common_widget.dart';
-
-import '../models/location_model.dart';
-import '../models/user_models.dart';
 
 class EventPost extends StatefulWidget {
   const EventPost({Key? key}) : super(key: key);
@@ -24,30 +21,19 @@ class _EventPostState extends State<EventPost> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _eventTypeController = TextEditingController();
+  final TextEditingController _requiredDayController = TextEditingController();
   final TextEditingController _locationDetailController = TextEditingController();
   List<String> _selectedSkills = [];
+  String? _selectedType;
   String? _selectedSubDistrict;
   String? _selectedDistrict;
   DateTime? _eventDate;
   DateTime? _lastApplicationDate;
 
-  // File? _image;
-  // final picker = ImagePicker();
   bool _isLoading = false;
 
   Future<void> addEvent() async {
-    if (_titleController.text.isEmpty ||
-        _descriptionController.text.isEmpty ||
-        _eventTypeController.text.isEmpty ||
-        _locationDetailController.text.isEmpty ||
-        _selectedSkills!.isEmpty ||
-        _selectedSubDistrict!.isEmpty ||
-        _selectedDistrict!.isEmpty ||
-        _eventDate == null ||
-        _lastApplicationDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Please fill in all the fields')));
+    if (!_formKey.currentState!.validate()) {
       return;
     }
 
@@ -72,31 +58,24 @@ class _EventPostState extends State<EventPost> {
         return;
       }
 
-      // Upload image to Firebase Storage if an image is selected
-      // String? imageUrl;
-      // if (_image != null) {
-      //   imageUrl = await _uploadImageToFirebaseStorage(_image!);
-      // }
-
       CollectionReference events = FirebaseFirestore.instance.collection('events');
       await events.add({
         'title': _titleController.text,
         'description': _descriptionController.text,
-        'event_type': _eventTypeController.text,
+        'required_day': _requiredDayController.text,
         'location_details': _locationDetailController.text,
         'skills': _selectedSkills,
-        'sub_district': _selectedDistrict,
+        'event_type': _selectedType,
+        'sub_district': _selectedSubDistrict,
         'district': _selectedDistrict,
         'user_id': user.uid,
         'user_name': userName,
-        // 'imageUrl': imageUrl, // Add imageUrl to the event data
         'event_date': _eventDate,
         'last_application_date': _lastApplicationDate,
-        'timestamp': FieldValue.serverTimestamp(),  // Add timestamp here
+        'timestamp': FieldValue.serverTimestamp(),
       });
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Event added successfully')));
-
       _clearTextFields();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -108,50 +87,25 @@ class _EventPostState extends State<EventPost> {
     }
   }
 
-  // Pick an image from the gallery or camera
-  // Future<void> _getImage(ImageSource source) async {
-  //   final pickedFile = await picker.pickImage(source: source);
-  //
-  //   setState(() {
-  //     if (pickedFile != null) {
-  //       _image = File(pickedFile.path);
-  //     } else {
-  //       print('No image selected.');
-  //     }
-  //   });
-  // }
-
-  // Upload image to Firebase Storage and get the download URL
-  // Future<String> _uploadImageToFirebaseStorage(File imageFile) async {
-  //   try {
-  //     Reference storageReference = FirebaseStorage.instance
-  //         .ref()
-  //         .child('event_images/${DateTime.now().millisecondsSinceEpoch}');
-  //     UploadTask uploadTask = storageReference.putFile(imageFile);
-  //     TaskSnapshot taskSnapshot = await uploadTask;
-  //     String imageUrl = await taskSnapshot.ref.getDownloadURL();
-  //     return imageUrl;
-  //   } catch (e) {
-  //     throw Exception('Failed to upload image to Firebase Storage: $e');
-  //   }
-  // }
-
-  // Clear all text fields
   void _clearTextFields() {
     _titleController.clear();
     _descriptionController.clear();
-    _eventTypeController.clear();
+    _requiredDayController.clear();
     _locationDetailController.clear();
     _selectedSkills.clear();
+    _selectedType = null;
+    _selectedSubDistrict = null;
+    _selectedDistrict = null;
 
     setState(() {
-      // _image = null;
+      _selectedType = null;
+      _selectedSubDistrict = null;
+      _selectedDistrict = null;
       _eventDate = null;
       _lastApplicationDate = null;
     });
   }
 
-  // Select a date
   Future<void> _selectDate(BuildContext context, Function(DateTime) onDateSelected) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -180,41 +134,6 @@ class _EventPostState extends State<EventPost> {
             child: Column(
               children: [
                 const SizedBox(height: 30),
-                // _image != null
-                //     ? Container(
-                //   height: 200,
-                //   decoration: BoxDecoration(
-                //     image: DecorationImage(
-                //       image: FileImage(_image!),
-                //       fit: BoxFit.cover,
-                //     ),
-                //   ),
-                // )
-                //     : Container(
-                //   decoration: BoxDecoration(
-                //     border: Border.all(color: Colors.black),
-                //     borderRadius: BorderRadius.circular(20),
-                //   ),
-                //   height: 200,
-                //   width: double.infinity,
-                //   child: Icon(Icons.photo),
-                // ),
-                // const SizedBox(height: 10),
-                // Row(
-                //   mainAxisAlignment: MainAxisAlignment.center,
-                //   children: [
-                //     ElevatedButton(
-                //       onPressed: () => _getImage(ImageSource.gallery),
-                //       child: Text('Choose Image'),
-                //     ),
-                //     const SizedBox(width: 10),
-                //     ElevatedButton(
-                //       onPressed: () => _getImage(ImageSource.camera),
-                //       child: Text('Take Photo'),
-                //     ),
-                //   ],
-                // ),
-                // const SizedBox(height: 20),
                 TextFormField(
                   controller: _titleController,
                   decoration: InputDecoration(
@@ -224,24 +143,8 @@ class _EventPostState extends State<EventPost> {
                     ),
                   ),
                   validator: (value) {
-                    if (value == null) {
-                      return 'Please select title';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _eventTypeController,
-                  decoration: InputDecoration(
-                    hintText: 'Enter Event Type',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Please select event Type';
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a title';
                     }
                     return null;
                   },
@@ -256,13 +159,29 @@ class _EventPostState extends State<EventPost> {
                     ),
                   ),
                   validator: (value) {
-                    if (value == null) {
-                      return 'Please Enter Description';
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a description';
                     }
                     return null;
                   },
                 ),
-
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _requiredDayController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter Required Days',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the required days';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _locationDetailController,
                   decoration: InputDecoration(
@@ -272,8 +191,8 @@ class _EventPostState extends State<EventPost> {
                     ),
                   ),
                   validator: (value) {
-                    if (value == null) {
-                      return 'Please give location details';
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter location details';
                     }
                     return null;
                   },
@@ -282,7 +201,7 @@ class _EventPostState extends State<EventPost> {
                 MultiSelectDialogField<String>(
                   items: skills.map((skill) => MultiSelectItem<String>(skill, skill)).toList(),
                   title: Text("Skills"),
-                  searchable: true,  // Enable search
+                  searchable: true,
                   selectedColor: Colors.blue,
                   decoration: BoxDecoration(
                     border: Border.all(
@@ -309,7 +228,32 @@ class _EventPostState extends State<EventPost> {
                   initialValue: _selectedSkills,
                 ),
                 const SizedBox(height: 10),
-
+                DropdownSearch<String>(
+                  items: eventType,
+                  selectedItem: _selectedType,
+                  dropdownDecoratorProps: DropDownDecoratorProps(
+                    dropdownSearchDecoration: InputDecoration(
+                      hintText: "Please Select Event Type",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  popupProps: PopupProps.menu(
+                    showSearchBox: true,
+                  ),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedType = newValue;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select an event type';
+                    }
+                    return null;
+                  },
+                ),
                 const SizedBox(height: 10),
                 DropdownSearch<String>(
                   items: subDistricts,
@@ -331,15 +275,14 @@ class _EventPostState extends State<EventPost> {
                     });
                   },
                   validator: (value) {
-                    if (value == null) {
-                      return 'Please select a Sub-District';
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a sub-district';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 10),
                 DropdownSearch<String>(
-
                   items: districts,
                   selectedItem: _selectedDistrict,
                   dropdownDecoratorProps: DropDownDecoratorProps(
@@ -359,8 +302,8 @@ class _EventPostState extends State<EventPost> {
                     });
                   },
                   validator: (value) {
-                    if (value == null) {
-                      return 'Please select District';
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a district';
                     }
                     return null;
                   },
@@ -396,8 +339,8 @@ class _EventPostState extends State<EventPost> {
                 ),
                 const SizedBox(height: 50),
                 ElevatedButton(
-                  onPressed: (){
-                    if (_formKey.currentState!.validate()){
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
                       addEvent();
                     }
                   },

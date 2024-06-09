@@ -43,3 +43,7 @@ class EventsModel {
   ];
 
 
+List<String> eventType = [
+  'Paid',
+  'Non Paid'
+];

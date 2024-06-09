@@ -5,7 +5,9 @@
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:sahayagi/screens/all_user.dart';
+import 'package:sahayagi/screens/blood_post.dart';
 import 'package:sahayagi/screens/edit_posted_events.dart';
+import 'package:sahayagi/screens/posted_blood_post.dart';
 import 'package:sahayagi/screens/suggested_blood_donation_post.dart';
 import 'package:sahayagi/screens/suggested_events.dart';
 import 'package:sahayagi/screens/posted_events.dart';
@@ -24,7 +26,7 @@ class ConvexBarDemo extends StatefulWidget {
 }
 
 class _ConvexBarDemoState extends State<ConvexBarDemo> {
-  List<Widget> pages = [const HomePage(),const AllEvents(),const PostedEvents(),AllUsers(),SuggestedBloodPosts()];
+  List<Widget> pages = [const HomePage(),const AllEvents(),const PostedEvents(),PostedBloodPost(),SuggestedBloodPosts()];
   int index =0;
   @override
   Widget build(BuildContext context) {

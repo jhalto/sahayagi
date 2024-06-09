@@ -64,6 +64,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1063292408157',
     projectId: 'sahayagi-6f549',
     storageBucket: 'sahayagi-6f549.appspot.com',
+    androidClientId: '1063292408157-ced7icn4lb3ddk9jfjj66s754hfqnepr.apps.googleusercontent.com',
+    iosClientId: '1063292408157-dj8t9bgekkaqei6psjik9m8bsrg16331.apps.googleusercontent.com',
     iosBundleId: 'com.example.sahayagi',
   );
 
@@ -73,6 +75,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1063292408157',
     projectId: 'sahayagi-6f549',
     storageBucket: 'sahayagi-6f549.appspot.com',
+    androidClientId: '1063292408157-ced7icn4lb3ddk9jfjj66s754hfqnepr.apps.googleusercontent.com',
+    iosClientId: '1063292408157-dj8t9bgekkaqei6psjik9m8bsrg16331.apps.googleusercontent.com',
     iosBundleId: 'com.example.sahayagi',
   );
 
@@ -85,4 +89,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'sahayagi-6f549.appspot.com',
     measurementId: 'G-TKSLJLN6RS',
   );
+
 }

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -58,7 +60,13 @@ class _SignInState extends State<SignIn> {
                     ],
                   ),
                 ),
-                MaterialButton(onPressed: (){}, child: Row(
+                MaterialButton(onPressed: (){
+                  MyHelper().signInWithGoogle().then((users) {
+                    log('\n Users: ${users.user}');
+                    log('\n User Additional Info: ${users.additionalUserInfo}');
+                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ConvexBarDemo(),));
+                  });
+                }, child: Row(
                   children: [
                     Container(
                       height: 30,
@@ -134,6 +142,7 @@ class _SignInState extends State<SignIn> {
 
                               },child: Row(
                               children: [
+                                
                                 Icon(Icons.mobile_friendly),
                                 Text("Reset via Phone Verification"),
                               ],

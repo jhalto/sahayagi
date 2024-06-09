@@ -11,44 +11,43 @@ class AppliedEvents extends StatefulWidget {
 }
 
 class _AppliedEventsState extends State<AppliedEvents> {
-  Future<List<Map<String, dynamic>>> _fetchAppliedEvents() async {
+  Stream<List<DocumentSnapshot>> _fetchAppliedEvents() {
     User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      throw Exception("User not logged in");
+      return Stream.value([]);
     }
 
-    QuerySnapshot appliedEventsSnapshot = await FirebaseFirestore.instance
+    return FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
         .collection('applied_events')
-        .get();
+        .snapshots()
+        .asyncMap((QuerySnapshot appliedEventsSnapshot) async {
+      List<DocumentSnapshot> appliedEventsDocs = [];
+      for (var doc in appliedEventsSnapshot.docs) {
+        DocumentSnapshot eventDoc = await FirebaseFirestore.instance
+            .collection('events')
+            .doc(doc.id)
+            .get();
 
-    List<Map<String, dynamic>> appliedEventsDocs = [];
-    for (var doc in appliedEventsSnapshot.docs) {
-      DocumentSnapshot eventDoc = await FirebaseFirestore.instance
-          .collection('events')
-          .doc(doc.id)
-          .get();
-
-      if (eventDoc.exists && eventDoc.data() != null) {
-        appliedEventsDocs.add({
-          'document': eventDoc,
-          'appliedEventId': doc.id,
-        });
+        if (eventDoc.exists) {
+          appliedEventsDocs.add(eventDoc);
+        }
       }
-    }
-
-    return appliedEventsDocs;
+      return appliedEventsDocs;
+    });
   }
 
-  Future<void> _removeApplication(BuildContext context, String eventId) async {
+  Future<void> _removeApplication(String eventId) async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      throw Exception("User not logged in");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('User not logged in')),
+      );
+      return;
     }
 
     try {
-      // Delete the application from the user's applied_events sub-collection
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
@@ -56,7 +55,6 @@ class _AppliedEventsState extends State<AppliedEvents> {
           .doc(eventId)
           .delete();
 
-      // Delete the application from the event's applications sub-collection
       await FirebaseFirestore.instance
           .collection('events')
           .doc(eventId)
@@ -67,8 +65,6 @@ class _AppliedEventsState extends State<AppliedEvents> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Application removed successfully')),
       );
-
-      setState(() {}); // Refresh the list after removal
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to remove application: $e')),
@@ -82,9 +78,9 @@ class _AppliedEventsState extends State<AppliedEvents> {
       appBar: AppBar(
         title: Text("Applied Events", style: appFontStyle(25, texColorLight)),
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _fetchAppliedEvents(),
-        builder: (BuildContext context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
+      body: StreamBuilder<List<DocumentSnapshot>>(
+        stream: _fetchAppliedEvents(),
+        builder: (BuildContext context, AsyncSnapshot<List<DocumentSnapshot>> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           }
@@ -93,23 +89,18 @@ class _AppliedEventsState extends State<AppliedEvents> {
             return Center(child: Text('Something went wrong: ${snapshot.error}'));
           }
 
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          List<DocumentSnapshot> appliedEvents = snapshot.data ?? [];
+          if (appliedEvents.isEmpty) {
             return Center(child: Text('No applied events found'));
           }
 
-          return ListView(
-            padding: EdgeInsets.all(8.0),
-            children: snapshot.data!.map((Map<String, dynamic> data) {
-              DocumentSnapshot document = data['document'];
-              String appliedEventId = data['appliedEventId'];
-              Map<String, dynamic>? eventData = document.data() as Map<String, dynamic>?;
+          return ListView.builder(
+            itemCount: appliedEvents.length,
+            itemBuilder: (BuildContext context, int index) {
+              DocumentSnapshot document = appliedEvents[index];
+              Map<String, dynamic> eventData = document.data() as Map<String, dynamic>;
 
-              if (eventData == null) {
-                return Container();
-              }
-
-              // Join the skills list into a comma-separated string
-              String skills = (eventData['skills'] as List<dynamic>?)?.join(', ') ?? 'N/A';
+              List<String> skills = List<String>.from(eventData['skills'] ?? []);
 
               return Container(
                 child: Card(
@@ -140,7 +131,7 @@ class _AppliedEventsState extends State<AppliedEvents> {
                         ),
                         SizedBox(height: 10),
                         Text(
-                          'Skill: $skills',
+                          'Skills Required: ${skills.join(', ')}',
                           style: appFontStyle(15),
                         ),
                         SizedBox(height: 10),
@@ -157,7 +148,7 @@ class _AppliedEventsState extends State<AppliedEvents> {
                           style: appFontStyle(15),
                         ),
                         Text(
-                          'Location: ${eventData['location_details'] ?? 'N/A'}',
+                          'Location Details: ${eventData['location_details'] ?? 'N/A'}',
                           style: appFontStyle(15),
                         ),
                         ElevatedButton(
@@ -183,7 +174,7 @@ class _AppliedEventsState extends State<AppliedEvents> {
                             ) ?? false;
 
                             if (confirmRemove) {
-                              await _removeApplication(context, appliedEventId);
+                              await _removeApplication(document.id);
                             }
                           },
                           child: const Text("Remove Application"),
@@ -193,7 +184,7 @@ class _AppliedEventsState extends State<AppliedEvents> {
                   ),
                 ),
               );
-            }).toList(),
+            },
           );
         },
       ),
