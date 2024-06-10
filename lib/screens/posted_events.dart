@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sahayagi/screens/applied_users_in_events.dart';
 import 'package:sahayagi/screens/edit_posted_events.dart';
@@ -130,63 +131,66 @@ class _PostedEventsState extends State<PostedEvents> {
               Text('Sub District: ${data['sub_district'] ?? 'N/A'}', style: appFontStyle(15)),
               Text('District: ${data['district'] ?? 'N/A'}', style: appFontStyle(15)),
               const Spacer(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EditPostedEvent(documentId: documentId),
-                        ),
-                      );
-                    },
-                    child: const Text("Edit"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      bool confirmDelete = await showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Text('Delete Event'),
-                            content: Text('Are you sure you want to delete this event?'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(false),
-                                child: Text('Cancel'),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop(true);
-                                },
-                                child: Text('Delete'),
-                              ),
-                            ],
-                          );
-                        },
-                      ) ?? false;
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditPostedEvent(documentId: documentId),
+                          ),
+                        );
+                      },
+                      child: const Text("Edit"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        bool confirmDelete = await showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('Delete Event'),
+                              content: Text('Are you sure you want to delete this event?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(false),
+                                  child: Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop(true);
+                                  },
+                                  child: Text('Delete'),
+                                ),
+                              ],
+                            );
+                          },
+                        ) ?? false;
 
-                      if (confirmDelete) {
-                        _deleteEvent(documentId);
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(),
-                    child: const Text("Delete"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AppliedUsersInEvent(eventId: documentId),
-                        ),
-                      );
-                    },
-                    child: const Text("View Applicants"),
-                  ),
-                ],
+                        if (confirmDelete) {
+                          _deleteEvent(documentId);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(),
+                      child: const Text("Delete"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AppliedUsersInEvent(eventId: documentId),
+                          ),
+                        );
+                      },
+                      child: const Text("View Applicants"),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

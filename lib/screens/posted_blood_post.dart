@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sahayagi/screens/applied_users_in_events.dart';
-import 'package:sahayagi/screens/edit_posted_events.dart';
+import 'package:sahayagi/screens/edit_posted_blood_post.dart';
 
 import '../widget/common_widget.dart';
 import 'app_drawer.dart';
@@ -30,7 +31,7 @@ class _PostedBloodPostState extends State<PostedBloodPost> {
     }
   }
 
-  Future<void> _deleteEvent(String documentId) async {
+  Future<void> _deleteBloodPost(String documentId) async {
     try {
       await FirebaseFirestore.instance.collection('blood_donation').doc(documentId).delete();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -48,12 +49,12 @@ class _PostedBloodPostState extends State<PostedBloodPost> {
     return Scaffold(
       drawer: const AppDrawer(),
       appBar: AppBar(
-        title: Text("Posted Events", style: appFontStyle(25, texColorLight)),
+        title: Text("Posted Blood Posts", style: appFontStyle(25, texColorLight)),
         centerTitle: true,
         actions: [
           IconButton(
             onPressed: () {
-              // Add functionality for adding new events
+              // Add functionality for adding new posts
             },
             icon: const Icon(Icons.add_card_outlined),
           ),
@@ -77,24 +78,24 @@ class _PostedBloodPostState extends State<PostedBloodPost> {
                 .collection('blood_donation')
                 .where('user_id', isEqualTo: user!.uid)
                 .snapshots(),
-            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> eventSnapshot) {
-              if (eventSnapshot.hasError) {
-                return Center(child: Text('Something went wrong: ${eventSnapshot.error}'));
+            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> postSnapshot) {
+              if (postSnapshot.hasError) {
+                return Center(child: Text('Something went wrong: ${postSnapshot.error}'));
               }
 
-              if (eventSnapshot.connectionState == ConnectionState.waiting) {
+              if (postSnapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              if (!eventSnapshot.hasData || eventSnapshot.data!.docs.isEmpty) {
-                return const Center(child: Text('No events posted by you'));
+              if (!postSnapshot.hasData || postSnapshot.data!.docs.isEmpty) {
+                return const Center(child: Text('No posts found'));
               }
 
               return ListView(
                 padding: const EdgeInsets.all(8.0),
-                children: eventSnapshot.data!.docs.map((DocumentSnapshot document) {
+                children: postSnapshot.data!.docs.map((DocumentSnapshot document) {
                   Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
-                  return _buildEventCard(context, data, document.id);
+                  return _buildPostCard(context, data, document.id);
                 }).toList(),
               );
             },
@@ -104,9 +105,7 @@ class _PostedBloodPostState extends State<PostedBloodPost> {
     );
   }
 
-  Widget _buildEventCard(BuildContext context, Map<String, dynamic> data, String documentId) {
-    String skills = (data['skills'] as List<dynamic>?)?.join(', ') ?? 'N/A';
-
+  Widget _buildPostCard(BuildContext context, Map<String, dynamic> data, String documentId) {
     return Container(
       height: 350,
       child: Card(
@@ -122,71 +121,74 @@ class _PostedBloodPostState extends State<PostedBloodPost> {
               const SizedBox(height: 10),
               Text(data['description'] ?? 'No description', style: appFontStyle(15)),
               const SizedBox(height: 10),
-              Text('Event Type: ${data['event_type'] ?? 'N/A'}', style: appFontStyle(15)),
+              Text('Hospital: ${data['hospital'] ?? 'N/A'}', style: appFontStyle(15)),
               const SizedBox(height: 10),
-              Text("Needed Skill: ${skills}",style: appFontStyle(15,),),
+              Text('Phone: ${data['phone'] ?? 'N/A'}', style: appFontStyle(15)),
               const SizedBox(height: 10),
               Text('Location:', style: appFontStyle(15, texColorDark, FontWeight.bold)),
               Text('Sub District: ${data['sub_district'] ?? 'N/A'}', style: appFontStyle(15)),
               Text('District: ${data['district'] ?? 'N/A'}', style: appFontStyle(15)),
               const Spacer(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EditPostedEvent(documentId: documentId),
-                        ),
-                      );
-                    },
-                    child: const Text("Edit"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      bool confirmDelete = await showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Text('Delete Event'),
-                            content: Text('Are you sure you want to delete this event?'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(false),
-                                child: Text('Cancel'),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop(true);
-                                },
-                                child: Text('Delete'),
-                              ),
-                            ],
-                          );
-                        },
-                      ) ?? false;
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditPostedBloodPost(documentId: documentId),
+                          ),
+                        );
+                      },
+                      child: const Text("Edit"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        bool confirmDelete = await showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('Delete Post'),
+                              content: Text('Are you sure you want to delete this post?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(false),
+                                  child: Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop(true);
+                                  },
+                                  child: Text('Delete'),
+                                ),
+                              ],
+                            );
+                          },
+                        ) ?? false;
 
-                      if (confirmDelete) {
-                        _deleteEvent(documentId);
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(),
-                    child: const Text("Delete"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AppliedUsersInEvent(eventId: documentId),
-                        ),
-                      );
-                    },
-                    child: const Text("View Applicants"),
-                  ),
-                ],
+                        if (confirmDelete) {
+                          _deleteBloodPost(documentId);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(),
+                      child: const Text("Delete"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AppliedUsersInEvent(eventId: documentId),
+                          ),
+                        );
+                      },
+                      child: const Text("View Applicants"),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

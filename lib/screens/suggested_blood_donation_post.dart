@@ -53,6 +53,49 @@ class _SuggestedBloodPostsState extends State<SuggestedBloodPosts> {
     return querySnapshot.docs;
   }
 
+  Future<void> _applyForBloodPost(String postId) async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User not logged in')));
+      return;
+    }
+
+    try {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      String userName = userDoc['name'] ?? 'Unknown';
+
+      // Adding application details to the 'applications' sub-collection in the specific blood post document
+      await FirebaseFirestore.instance
+          .collection('blood_donation')
+          .doc(postId)
+          .collection('applications')
+          .doc(user.uid)
+          .set({
+        'user_id': user.uid,
+        'name': userName,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      // Optionally, you can add a reference to this blood post in the user's document
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('applied_blood_posts')
+          .doc(postId)
+          .set({
+        'post_id': postId,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Successfully applied for the blood post')));
+
+      // Trigger rebuild to refresh the blood posts list
+      setState(() {});
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to apply for the blood post: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,7 +136,6 @@ class _SuggestedBloodPostsState extends State<SuggestedBloodPosts> {
                   DocumentSnapshot document = bloodPosts[index];
                   Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
                   return Container(
-
                     child: Card(
                       margin: EdgeInsets.symmetric(vertical: 8.0),
                       child: Padding(
@@ -114,6 +156,12 @@ class _SuggestedBloodPostsState extends State<SuggestedBloodPosts> {
                             Text('Operation Date: ${data['operation_date'] != null ? DateFormat.yMd().format((data['operation_date'] as Timestamp).toDate()) : 'N/A'}', style: appFontStyle(15)),
                             SizedBox(height: 10),
                             Text('Last Application Date: ${data['last_application_date'] != null ? DateFormat.yMd().format((data['last_application_date'] as Timestamp).toDate()) : 'N/A'}', style: appFontStyle(15)),
+                            ElevatedButton(
+                              onPressed: () {
+                                _applyForBloodPost(document.id);
+                              },
+                              child: Text("Apply"),
+                            ),
                           ],
                         ),
                       ),

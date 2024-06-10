@@ -1,27 +1,32 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
+import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:sahayagi/widget/common_widget.dart';
-
+import '../models/events_model.dart';
 import '../models/location_model.dart';
 import '../models/user_models.dart';
 
-class BloodPost extends StatefulWidget {
-  const BloodPost({Key? key}) : super(key: key);
+class EditPostedBloodPost extends StatefulWidget {
+  final String documentId;
+
+  const EditPostedBloodPost({required this.documentId, Key? key}) : super(key: key);
 
   @override
-  State<BloodPost> createState() => _BloodPostState();
+  State<EditPostedBloodPost> createState() => _EditPostedBloodPostState();
 }
 
-class _BloodPostState extends State<BloodPost> {
+class _EditPostedBloodPostState extends State<EditPostedBloodPost> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _hospitalController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _bloodQuantityController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _locationDetailController = TextEditingController();
-
   String? _selectedBloodGroup;
   String? _selectedSubDistrict;
   String? _selectedDistrict;
@@ -29,21 +34,49 @@ class _BloodPostState extends State<BloodPost> {
   DateTime? _operationDate;
   DateTime? _lastApplicationDate;
   bool _isLoading = false;
-  final _formKey = GlobalKey<FormState>();
 
-  Future<void> addBloodNeedingInfo() async {
-    if (_hospitalController.text.isEmpty ||
-        _descriptionController.text.isEmpty ||
-        _bloodQuantityController.text.isEmpty ||
-        _phoneController.text.isEmpty ||
-        _locationDetailController.text.isEmpty ||
-        _selectedBloodGroup == null ||
-        _selectedSubDistrict == null ||
-        _selectedDistrict == null ||
-        _operationDate == null ||
-        _lastApplicationDate == null) {
+
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBloodData();
+  }
+
+  Future<void> _loadBloodData() async {
+    try {
+      DocumentSnapshot bloodDoc = await FirebaseFirestore.instance
+          .collection('blood_donation')
+          .doc(widget.documentId)
+          .get();
+      if (bloodDoc.exists) {
+        Map<String, dynamic>? data = bloodDoc.data() as Map<String, dynamic>?;
+        if (data != null) {
+          setState(() {
+            _hospitalController.text = data['hospital'] ?? '';
+            _descriptionController.text = data['description'] ?? '';
+            _bloodQuantityController.text = data['blood_quantity'] ?? '';
+            _phoneController.text = data['phone'] ?? '';
+            _locationDetailController.text = data['location_details'] ?? '';
+            _selectedBloodGroup = data['blood_group'];
+
+            _selectedSubDistrict = data['sub_district'];
+            _selectedDistrict = data['district'];
+            _operationDate = (data['operation_date'] as Timestamp).toDate();
+            _lastApplicationDate = (data['last_application_date'] as Timestamp).toDate();
+          });
+        }
+      } else {
+        print('No event found for the given document ID.');
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Please fill in all the fields')));
+          SnackBar(content: Text('Failed to load event data: $e')));
+    }
+  }
+
+  Future<void> updateBloodPost() async {
+    if (!_formKey.currentState!.validate()) {
       return;
     }
 
@@ -52,22 +85,7 @@ class _BloodPostState extends State<BloodPost> {
     });
 
     try {
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('User not logged in')));
-        return;
-      }
-
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      String? userName = userDoc['name'];
-
-      CollectionReference bloodDonation =
-      FirebaseFirestore.instance.collection('blood_donation');
-      await bloodDonation.add({
+      await FirebaseFirestore.instance.collection('blood_donation').doc(widget.documentId).update({
         'hospital': _hospitalController.text,
         'description': _descriptionController.text,
         'blood_quantity': _bloodQuantityController.text,
@@ -76,20 +94,16 @@ class _BloodPostState extends State<BloodPost> {
         'blood_group': _selectedBloodGroup,
         'sub_district': _selectedSubDistrict,
         'district': _selectedDistrict,
-        'user_id': user.uid,
-        'user_name': userName,
         'operation_date': _operationDate,
         'last_application_date': _lastApplicationDate,
-        'timestamp': FieldValue.serverTimestamp(), // Add timestamp here
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Blood post added successfully')));
-
-      _clearTextFields();
+          SnackBar(content: Text('Blood Post updated successfully')));
+      Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to add blood post: $e')));
+          SnackBar(content: Text('Failed to update Blood Post: $e')));
     } finally {
       setState(() {
         _isLoading = false;
@@ -97,31 +111,12 @@ class _BloodPostState extends State<BloodPost> {
     }
   }
 
-  // Clear all text fields
-  void _clearTextFields() {
-    _hospitalController.clear();
-    _descriptionController.clear();
-    _bloodQuantityController.clear();
-    _phoneController.clear();
-    _locationDetailController.clear();
-
-    setState(() {
-      _operationDate = null;
-      _lastApplicationDate = null;
-      _selectedBloodGroup = null;
-      _selectedSubDistrict = null;
-      _selectedDistrict = null;
-    });
-  }
-
-  // Select a date
-  Future<void> _selectDate(
-      BuildContext context, Function(DateTime) onDateSelected) async {
+  Future<void> _selectDate(BuildContext context, Function(DateTime) onDateSelected) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2024),
-      lastDate: DateTime(2025),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
     );
     if (picked != null) {
       onDateSelected(picked);
@@ -132,15 +127,15 @@ class _BloodPostState extends State<BloodPost> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Blood Post', style: appFontStyle(25, texColorLight)),
+        title: Text('Edit Blood Post', style: appFontStyle(25, texColorLight)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: _isLoading
             ? Center(child: CircularProgressIndicator())
-            : Form(
-          key: _formKey,
-          child: SingleChildScrollView(
+            : SingleChildScrollView(
+          child: Form(
+            key: _formKey,
             child: Column(
               children: [
                 const SizedBox(height: 30),
@@ -154,7 +149,7 @@ class _BloodPostState extends State<BloodPost> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please Enter hospital';
+                      return 'Please enter Hospital Name';
                     }
                     return null;
                   },
@@ -170,7 +165,7 @@ class _BloodPostState extends State<BloodPost> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter Description';
+                      return 'Please enter a description';
                     }
                     return null;
                   },
@@ -179,14 +174,30 @@ class _BloodPostState extends State<BloodPost> {
                 TextFormField(
                   controller: _bloodQuantityController,
                   decoration: InputDecoration(
-                    hintText: 'Enter Quantity',
+                    hintText: 'Enter Blood Quantity',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter Quantity';
+                      return 'Please enter blood Quantity';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _locationDetailController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter Location Details',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter location details';
                     }
                     return null;
                   },
@@ -195,7 +206,7 @@ class _BloodPostState extends State<BloodPost> {
                 TextFormField(
                   controller: _phoneController,
                   decoration: InputDecoration(
-                    hintText: 'Enter phone number',
+                    hintText: 'Enter Phone Number',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -207,28 +218,14 @@ class _BloodPostState extends State<BloodPost> {
                     return null;
                   },
                 ),
-                TextFormField(
-                  controller: _locationDetailController,
-                  decoration: InputDecoration(
-                    hintText: 'Enter Location Details',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter location';
-                    }
-                    return null;
-                  },
-                ),
                 const SizedBox(height: 10),
+
                 DropdownSearch<String>(
                   items: bloodGroups,
                   selectedItem: _selectedBloodGroup,
                   dropdownDecoratorProps: DropDownDecoratorProps(
                     dropdownSearchDecoration: InputDecoration(
-                      hintText: "Please Select Blood Group",
+                      hintText: "Please Select blood Group",
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -243,8 +240,8 @@ class _BloodPostState extends State<BloodPost> {
                     });
                   },
                   validator: (value) {
-                    if (value == null) {
-                      return 'Please select a blood Group';
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a blood group';
                     }
                     return null;
                   },
@@ -270,8 +267,8 @@ class _BloodPostState extends State<BloodPost> {
                     });
                   },
                   validator: (value) {
-                    if (value == null) {
-                      return 'Please select a Sub-District';
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a sub-district';
                     }
                     return null;
                   },
@@ -297,8 +294,8 @@ class _BloodPostState extends State<BloodPost> {
                     });
                   },
                   validator: (value) {
-                    if (value == null) {
-                      return 'Please select District';
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a district';
                     }
                     return null;
                   },
@@ -314,7 +311,7 @@ class _BloodPostState extends State<BloodPost> {
                           });
                         }),
                         child: Text(_operationDate == null
-                            ? 'Select operation date'
+                            ? 'Select Operation Date'
                             : DateFormat.yMd().format(_operationDate!)),
                       ),
                     ),
@@ -327,19 +324,14 @@ class _BloodPostState extends State<BloodPost> {
                         }),
                         child: Text(_lastApplicationDate == null
                             ? 'Select Last Application Date'
-                            : DateFormat.yMd()
-                            .format(_lastApplicationDate!)),
+                            : DateFormat.yMd().format(_lastApplicationDate!)),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 50),
                 ElevatedButton(
-                  onPressed: (){
-                    if (_formKey.currentState!.validate()){
-                      addBloodNeedingInfo();
-                    }
-                  },
+                  onPressed: updateBloodPost,
                   child: const Text('Submit'),
                 ),
               ],
