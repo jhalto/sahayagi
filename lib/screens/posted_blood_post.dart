@@ -2,11 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:sahayagi/screens/applied_users_in_events.dart';
+
 import 'package:sahayagi/screens/edit_posted_blood_post.dart';
 
 import '../widget/common_widget.dart';
 import 'app_drawer.dart';
+import 'view_applicant_in_user_blood posts.dart';
 
 class PostedBloodPost extends StatefulWidget {
   const PostedBloodPost({super.key});
@@ -181,7 +182,7 @@ class _PostedBloodPostState extends State<PostedBloodPost> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => AppliedUsersInEvent(eventId: documentId),
+                            builder: (context) => ViewApplicants(postId: documentId, postTitle: data['hospital'] ?? 'Post'),
                           ),
                         );
                       },

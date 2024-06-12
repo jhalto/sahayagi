@@ -109,7 +109,7 @@ class _PostedEventsState extends State<PostedEvents> {
     String skills = (data['skills'] as List<dynamic>?)?.join(', ') ?? 'N/A';
 
     return Container(
-      height: 350,
+      height: 370,
       child: Card(
         margin: const EdgeInsets.symmetric(vertical: 8.0),
         child: Padding(

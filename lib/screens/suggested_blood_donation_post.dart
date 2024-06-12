@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sahayagi/screens/app_drawer.dart';
+import 'package:sahayagi/screens/applied_blood_post.dart';
 import 'package:sahayagi/widget/common_widget.dart';
 
 class SuggestedBloodPosts extends StatefulWidget {
@@ -14,19 +16,24 @@ class SuggestedBloodPosts extends StatefulWidget {
 class _SuggestedBloodPostsState extends State<SuggestedBloodPosts> {
   String? _userBloodGroup;
   String? _userDistrict;
-  late Future<void> _fetchUserDetailsFuture;
+  Set<String> _appliedPostIds = {};
+  String? _currentUserId;
 
   @override
   void initState() {
     super.initState();
-    _fetchUserDetailsFuture = _fetchUserDetails();
+    _fetchUserDetails();
+    _fetchAppliedBloodPosts();
   }
 
   Future<void> _fetchUserDetails() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      throw Exception("User not logged in");
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User not logged in')));
+      return;
     }
+
+    _currentUserId = user.uid;
 
     DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
     if (userDoc.exists) {
@@ -34,23 +41,43 @@ class _SuggestedBloodPostsState extends State<SuggestedBloodPosts> {
         _userBloodGroup = userDoc['blood_group'];
         _userDistrict = userDoc['district'];
       });
+      _fetchAppliedBloodPosts();
     } else {
-      throw Exception("User document not found");
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User document not found')));
     }
   }
 
-  Future<List<DocumentSnapshot>> _getSuggestedBloodPosts() async {
-    if (_userBloodGroup == null || _userDistrict == null) {
-      return [];
+  Future<void> _fetchAppliedBloodPosts() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return;
     }
 
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+    QuerySnapshot appliedPostsSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('applied_blood_posts')
+        .get();
+
+    setState(() {
+      _appliedPostIds = appliedPostsSnapshot.docs.map((doc) => doc['post_id'] as String).toSet();
+    });
+  }
+
+  Stream<List<DocumentSnapshot>> _getSuggestedBloodPosts() {
+    if (_userBloodGroup == null || _userDistrict == null) {
+      return Stream.value([]);
+    }
+
+    return FirebaseFirestore.instance
         .collection('blood_donation')
         .where('blood_group', isEqualTo: _userBloodGroup)
         .where('district', isEqualTo: _userDistrict)
-        .get();
-
-    return querySnapshot.docs;
+        .snapshots()
+        .map((querySnapshot) {
+      List<DocumentSnapshot> docs = querySnapshot.docs;
+      return docs.where((doc) => !_appliedPostIds.contains(doc.id) && doc['user_id'] != _currentUserId).toList();
+    });
   }
 
   Future<void> _applyForBloodPost(String postId) async {
@@ -89,85 +116,95 @@ class _SuggestedBloodPostsState extends State<SuggestedBloodPosts> {
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Successfully applied for the blood post')));
 
-      // Trigger rebuild to refresh the blood posts list
-      setState(() {});
+      // Refresh the list of applied blood posts and trigger a rebuild to refresh the suggested blood posts list
+      _fetchAppliedBloodPosts();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to apply for the blood post: $e')));
     }
   }
 
+  Future<void> _navigateToAppliedBloodPost() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AppliedBloodPosts(),
+      ),
+    );
+    _fetchUserDetails(); // Refresh user details when returning
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: AppDrawer(),
       appBar: AppBar(
         title: Text("Suggested Blood Posts", style: appFontStyle(25, texColorLight)),
         centerTitle: true,
+        actions: [
+          TextButton(
+            onPressed: () {
+              _navigateToAppliedBloodPost();
+            },
+            child: Text("Applied", style: appFontStyle(16, texColorLight)),
+          ),
+        ],
       ),
-      body: FutureBuilder<void>(
-        future: _fetchUserDetailsFuture,
-        builder: (context, userDetailsSnapshot) {
-          if (userDetailsSnapshot.connectionState == ConnectionState.waiting) {
+      body: _userBloodGroup == null || _userDistrict == null
+          ? Center(child: CircularProgressIndicator())
+          : StreamBuilder<List<DocumentSnapshot>>(
+        stream: _getSuggestedBloodPosts(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           }
 
-          if (userDetailsSnapshot.hasError) {
-            return Center(child: Text('Something went wrong: ${userDetailsSnapshot.error}'));
+          if (snapshot.hasError) {
+            return Center(child: Text('Something went wrong: ${snapshot.error}'));
           }
 
-          return FutureBuilder<List<DocumentSnapshot>>(
-            future: _getSuggestedBloodPosts(),
-            builder: (context, bloodPostsSnapshot) {
-              if (bloodPostsSnapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
-              }
+          List<DocumentSnapshot> bloodPosts = snapshot.data ?? [];
+          if (bloodPosts.isEmpty) {
+            return Center(child: Text('No matching blood posts found'));
+          }
 
-              if (bloodPostsSnapshot.hasError) {
-                return Center(child: Text('Something went wrong: ${bloodPostsSnapshot.error}'));
-              }
-
-              List<DocumentSnapshot> bloodPosts = bloodPostsSnapshot.data ?? [];
-              if (bloodPosts.isEmpty) {
-                return Center(child: Text('No matching blood posts found'));
-              }
-
-              return ListView.builder(
-                itemCount: bloodPosts.length,
-                itemBuilder: (context, index) {
-                  DocumentSnapshot document = bloodPosts[index];
-                  Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
-                  return Container(
-                    child: Card(
-                      margin: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Posted by: ${data['user_name'] ?? 'Unknown'}', style: appFontStyle(15, texColorDark, FontWeight.bold)),
-                            SizedBox(height: 10),
-                            Text('Hospital: ${data['hospital'] ?? 'N/A'}', style: appFontStyle(20, texColorDark, FontWeight.bold)),
-                            SizedBox(height: 10),
-                            Text('Description: ${data['description'] ?? 'No description'}', style: appFontStyle(15)),
-                            SizedBox(height: 10),
-                            Text('Phone: ${data['phone'] ?? 'N/A'}', style: appFontStyle(15)),
-                            SizedBox(height: 10),
-                            Text('Location: ${data['location_details'] ?? 'N/A'}', style: appFontStyle(15)),
-                            SizedBox(height: 10),
-                            Text('Operation Date: ${data['operation_date'] != null ? DateFormat.yMd().format((data['operation_date'] as Timestamp).toDate()) : 'N/A'}', style: appFontStyle(15)),
-                            SizedBox(height: 10),
-                            Text('Last Application Date: ${data['last_application_date'] != null ? DateFormat.yMd().format((data['last_application_date'] as Timestamp).toDate()) : 'N/A'}', style: appFontStyle(15)),
-                            ElevatedButton(
-                              onPressed: () {
-                                _applyForBloodPost(document.id);
-                              },
-                              child: Text("Apply"),
-                            ),
-                          ],
+          return ListView.builder(
+            itemCount: bloodPosts.length,
+            itemBuilder: (context, index) {
+              DocumentSnapshot document = bloodPosts[index];
+              Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+              return Container(
+                child: Card(
+                  margin: EdgeInsets.symmetric(vertical: 8.0),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Posted by: ${data['user_name'] ?? 'Unknown'}', style: appFontStyle(15, texColorDark, FontWeight.bold)),
+                        SizedBox(height: 10),
+                        Text('Hospital: ${data['hospital'] ?? 'N/A'}', style: appFontStyle(20, texColorDark, FontWeight.bold)),
+                        SizedBox(height: 10),
+                        Text('Description: ${data['description'] ?? 'No description'}', style: appFontStyle(15)),
+                        SizedBox(height: 10),
+                        Text('Blood Group: ${data['blood_group'] ?? 'No blood group'}', style: appFontStyle(15)),
+                        SizedBox(height: 10),
+                        Text('Phone: ${data['phone'] ?? 'N/A'}', style: appFontStyle(15)),
+                        SizedBox(height: 10),
+                        Text('Location: ${data['location_details'] ?? 'N/A'}', style: appFontStyle(15)),
+                        SizedBox(height: 10),
+                        Text('Operation Date: ${data['operation_date'] != null ? DateFormat.yMd().format((data['operation_date'] as Timestamp).toDate()) : 'N/A'}', style: appFontStyle(15)),
+                        SizedBox(height: 10),
+                        Text('Last Application Date: ${data['last_application_date'] != null ? DateFormat.yMd().format((data['last_application_date'] as Timestamp).toDate()) : 'N/A'}', style: appFontStyle(15)),
+                        ElevatedButton(
+                          onPressed: () {
+                            _applyForBloodPost(document.id);
+                          },
+                          child: Text("Apply"),
                         ),
-                      ),
+                      ],
                     ),
-                  );
-                },
+                  ),
+                ),
               );
             },
           );

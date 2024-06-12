@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -29,8 +30,32 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("Handling a background message: ${message.messageId}");
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  var auth = FirebaseAuth.instance;
+  var isLogin = false;
+    checkIfLogin()async{
+      auth.authStateChanges().listen((User? user) {
+        if(user!=null && mounted){
+          setState(() {
+            isLogin = true;
+          });
+        }
+      });
+    }
+
+    @override
+  void initState() {
+
+      checkIfLogin();
+    super.initState();
+  }
 
   // This widget is the root of your application.
   @override
@@ -50,7 +75,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: SignIn(),
+      home:isLogin? ConvexBarDemo():  SignIn(),
     );
   }
 }
