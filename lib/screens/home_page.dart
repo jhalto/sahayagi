@@ -1,12 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sahayagi/screens/app_drawer.dart';
-import 'package:sahayagi/screens/post.dart';
-import 'package:sahayagi/screens/sign_in.dart';
-import '../models/events_model.dart';
+import 'package:sahayagi/screens/chat_screen.dart';
+import 'package:sahayagi/screens/post_option.dart';
 import '../widget/common_widget.dart';
-import 'event_post.dart';
-import 'message.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,11 +13,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  Future<void> registerEvent() async {
-   }
-
-  final Stream<QuerySnapshot> _eventStream = FirebaseFirestore.instance
-      .collection('events')
+  final Stream<QuerySnapshot> _storyStream = FirebaseFirestore.instance
+      .collection('stories')
       .orderBy('timestamp', descending: true)
       .snapshots();
 
@@ -45,9 +39,6 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         actions: [
-          // IconButton(onPressed: (){
-          //          Navigator.push(context, MaterialPageRoute(builder: (context) => const Messages(),));
-          // }, icon: const Icon(Icons.messenger_outline_outlined)),
           IconButton(
             onPressed: () {
               Navigator.push(context,
@@ -55,10 +46,17 @@ class _HomePageState extends State<HomePage> {
             },
             icon: Icon(Icons.add_card_outlined),
           ),
+          IconButton(
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => ChatScreen()));
+            },
+            icon: Icon(Icons.message),
+          ),
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: _eventStream,
+        stream: _storyStream,
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) {
             return Center(
@@ -70,14 +68,14 @@ class _HomePageState extends State<HomePage> {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text('No events found'));
+            return Center(child: Text('No stories found'));
           }
 
           return ListView(
             padding: EdgeInsets.all(8.0),
             children: snapshot.data!.docs.map((DocumentSnapshot document) {
               Map<String, dynamic> data =
-                  document.data()! as Map<String, dynamic>;
+              document.data()! as Map<String, dynamic>;
               return Container(
                 child: Card(
                   margin: EdgeInsets.symmetric(vertical: 8.0),
@@ -91,32 +89,21 @@ class _HomePageState extends State<HomePage> {
                               15,
                             )),
                         SizedBox(height: 10),
-                        Text(data['title'] ?? 'Empty',
+                        Text(data['title'] ?? 'No Title',
                             style: appFontStyle(
                               20,
                             )),
                         SizedBox(height: 10),
-                        Text(data['description'] ?? 'No description',
+                        if (data['image_url'] != null)
+                          Image.network(data['image_url']),
+                        SizedBox(height: 10),
+                        Text(data['content'] ?? 'No Content',
                             style: appFontStyle(15)),
                         SizedBox(height: 10),
-                        Text('Event Type: ${data['event_type'] ?? 'N/A'}',
-                            style: appFontStyle(15)),
-                        SizedBox(height: 10),
-                        Text('Skill: ${data['skills'] ?? 'N/A'}',
-                            style: appFontStyle(15)),
-                        SizedBox(height: 10),
-                        Text('Location:',
-                            style: appFontStyle(
-                              15,
-                            )),
-
-                        Text('Sub District: ${data['sub_district'] ?? 'N/A'}',
-                            style: appFontStyle(15)),
-                        Text('District: ${data['district'] ?? 'N/A'}',
-                            style: appFontStyle(15)),
-                        ElevatedButton(onPressed: (){
-
-                        }, child: Text("Apply")),
+                        Text(
+                          'Posted on: ${data['timestamp'] != null ? (data['timestamp'] as Timestamp).toDate().toString() : 'Unknown'}',
+                          style: appFontStyle(12, Colors.grey),
+                        ),
                       ],
                     ),
                   ),

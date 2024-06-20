@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:sahayagi/screens/blood_post.dart';
 import 'package:sahayagi/screens/event_post.dart';
+import 'package:sahayagi/screens/story_post.dart';
 import 'package:sahayagi/widget/common_widget.dart';
 
 
@@ -37,9 +39,11 @@ class _PostOptionState extends State<PostOption> {
                   children: [
                     EventPost(),
                     BloodPost(),
+                    StoryPost(),
                   ],
                 )),
                 Container(
+
                   height: 50,
                   color: appColorDark,
                   child: Row(
@@ -51,14 +55,21 @@ class _PostOptionState extends State<PostOption> {
                           setState(() {
                             pageController!.jumpToPage(0);
                           });
-                        },child: Text("Event Post",style: appFontStyle(20,texColorLight),),),
+                        },child: Text("Event",style: appFontStyle(20,texColorLight),),),
                       TextButton(
 
                         onPressed: (){
                           setState(() {
                             pageController!.jumpToPage(1);
                           });
-                        },child: Text("Blood Post",style: appFontStyle(20,texColorLight)),),
+                        },child: Text("Blood Donation",style: appFontStyle(20,texColorLight)),),
+                      TextButton(
+
+                        onPressed: (){
+                          setState(() {
+                            pageController!.jumpToPage(2);
+                          });
+                        },child: Text("Story",style: appFontStyle(20,texColorLight)),),
 
                     ],
                   ),
