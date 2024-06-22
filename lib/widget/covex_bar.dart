@@ -4,6 +4,7 @@
 
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:sahayagi/helpers/notification_services.dart';
 import 'package:sahayagi/screens/all_user.dart';
 import 'package:sahayagi/screens/blood_post.dart';
 import 'package:sahayagi/screens/edit_posted_events.dart';
@@ -12,6 +13,7 @@ import 'package:sahayagi/screens/suggested_blood_donation_post.dart';
 import 'package:sahayagi/screens/suggested_events.dart';
 import 'package:sahayagi/screens/posted_events.dart';
 import 'package:sahayagi/screens/profile.dart';
+import 'package:sahayagi/screens/user_story.dart';
 import 'package:sahayagi/widget/common_widget.dart';
 import '../screens/applied_events.dart';
 import '../screens/event_post.dart';
@@ -26,8 +28,22 @@ class ConvexBarDemo extends StatefulWidget {
 }
 
 class _ConvexBarDemoState extends State<ConvexBarDemo> {
-  List<Widget> pages = [const HomePage(),const AllEvents(),const PostedEvents(),PostedBloodPost(),SuggestedBloodPosts()];
+  NotificationServices notificationServices = NotificationServices();
+
+
+  List<Widget> pages = [HomePage(),UserStoriesScreen(),const AllEvents(),const PostedEvents(),PostedBloodPost(),SuggestedBloodPosts()];
   int index =0;
+  @override
+  void initState() {
+    notificationServices.requestNotificationPermission();
+
+
+    notificationServices.getDeviceToken().then((value) {
+      print('device token: ${value}');
+    });
+    super.initState();
+    notificationServices.firebaseInit();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,7 +52,7 @@ class _ConvexBarDemoState extends State<ConvexBarDemo> {
 
 
       bottomNavigationBar: ConvexAppBar(
-          top: -6,
+          top: -7,
 
 
 
@@ -56,6 +72,7 @@ class _ConvexBarDemoState extends State<ConvexBarDemo> {
           },
           items: const [
             TabItem(icon: Icon(Icons.home,color: texColorLight,)),
+            TabItem(icon: Icon(Icons.amp_stories,color: texColorLight,)),
             TabItem(icon: Icon(Icons.event_available,color: texColorLight)),
             TabItem(icon: Icon(Icons.event_note_sharp,color: texColorLight)),
             TabItem(icon: Icon(Icons.post_add,color: texColorLight)),
