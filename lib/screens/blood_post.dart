@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sahayagi/widget/common_widget.dart';
 
+import '../helpers/notification_helper.dart';
 import '../models/location_model.dart';
 import '../models/user_models.dart';
 
@@ -16,6 +17,7 @@ class BloodPost extends StatefulWidget {
 }
 
 class _BloodPostState extends State<BloodPost> {
+
   final TextEditingController _hospitalController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _bloodQuantityController = TextEditingController();
@@ -63,11 +65,15 @@ class _BloodPostState extends State<BloodPost> {
           .collection('users')
           .doc(user.uid)
           .get();
+      if (!userDoc.exists) {
+        throw Exception('User document does not exist');
+      }
+
       String? userName = userDoc['name'];
 
       CollectionReference bloodDonation =
       FirebaseFirestore.instance.collection('blood_donation');
-      await bloodDonation.add({
+      DocumentReference documentReference = await bloodDonation.add({
         'hospital': _hospitalController.text,
         'description': _descriptionController.text,
         'blood_quantity': _bloodQuantityController.text,
@@ -80,11 +86,14 @@ class _BloodPostState extends State<BloodPost> {
         'user_name': userName,
         'operation_date': _operationDate,
         'last_application_date': _lastApplicationDate,
-        'timestamp': FieldValue.serverTimestamp(), // Add timestamp here
+        'timestamp': FieldValue.serverTimestamp(),
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Blood post added successfully')));
+
+      // Send notification to matching users
+      await _sendNotificationToMatchingUsers(documentReference.id);
 
       _clearTextFields();
     } catch (e) {
@@ -94,6 +103,30 @@ class _BloodPostState extends State<BloodPost> {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _sendNotificationToMatchingUsers(String postId) async {
+    QuerySnapshot usersSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('blood_group', isEqualTo: _selectedBloodGroup)
+        .where('district', isEqualTo: _selectedDistrict)
+        .get();
+
+    NotificationHelper notificationHelper = NotificationHelper();
+
+    for (var doc in usersSnapshot.docs) {
+      var data = doc.data() as Map<String, dynamic>;
+      if (data.containsKey('device_token')) {
+        String? token = data['device_token'];
+        if (token != null) {
+          await notificationHelper.sendPushNotification(
+              token,
+              'New Blood Post Suggested!',
+              'A new blood donation request matching your blood group and district has been posted.'
+          );
+        }
+      }
     }
   }
 
@@ -115,8 +148,7 @@ class _BloodPostState extends State<BloodPost> {
   }
 
   // Select a date
-  Future<void> _selectDate(
-      BuildContext context, Function(DateTime) onDateSelected) async {
+  Future<void> _selectDate(BuildContext context, Function(DateTime) onDateSelected) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -148,10 +180,12 @@ class _BloodPostState extends State<BloodPost> {
                   controller: _hospitalController,
                   decoration: InputDecoration(
                     hintText: 'Enter Hospital Name',
+                    hintStyle: TextStyle(color: Colors.white),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
+                  style: TextStyle(color: Colors.white), // Set the text color to white
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please Enter hospital';
@@ -164,10 +198,12 @@ class _BloodPostState extends State<BloodPost> {
                   controller: _descriptionController,
                   decoration: InputDecoration(
                     hintText: 'Enter Description',
+                    hintStyle: TextStyle(color: Colors.white),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
+                  style: TextStyle(color: Colors.white),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter Description';
@@ -180,10 +216,12 @@ class _BloodPostState extends State<BloodPost> {
                   controller: _bloodQuantityController,
                   decoration: InputDecoration(
                     hintText: 'Enter Quantity',
+                    hintStyle: TextStyle(color: Colors.white),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
+                  style: TextStyle(color: Colors.white),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter Quantity';
@@ -196,10 +234,12 @@ class _BloodPostState extends State<BloodPost> {
                   controller: _phoneController,
                   decoration: InputDecoration(
                     hintText: 'Enter phone number',
+                    hintStyle: TextStyle(color: Colors.white),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
+                  style: TextStyle(color: Colors.white),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter phone number';
@@ -211,10 +251,12 @@ class _BloodPostState extends State<BloodPost> {
                   controller: _locationDetailController,
                   decoration: InputDecoration(
                     hintText: 'Enter Location Details',
+                    hintStyle: TextStyle(color: Colors.white),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
+                  style: TextStyle(color: Colors.white),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter location';
@@ -229,10 +271,12 @@ class _BloodPostState extends State<BloodPost> {
                   dropdownDecoratorProps: DropDownDecoratorProps(
                     dropdownSearchDecoration: InputDecoration(
                       hintText: "Please Select Blood Group",
+                      hintStyle: TextStyle(color: Colors.white),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
+                    baseStyle: TextStyle(color: Colors.white),
                   ),
                   popupProps: PopupProps.menu(
                     showSearchBox: true,
@@ -254,21 +298,28 @@ class _BloodPostState extends State<BloodPost> {
                   items: subDistricts,
                   selectedItem: _selectedSubDistrict,
                   dropdownDecoratorProps: DropDownDecoratorProps(
+
                     dropdownSearchDecoration: InputDecoration(
+
                       hintText: "Please Select Sub-District",
+                      hintStyle: TextStyle(color: Colors.white),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
+                    baseStyle: TextStyle(color: Colors.white),
                   ),
+
                   popupProps: PopupProps.menu(
                     showSearchBox: true,
+
                   ),
                   onChanged: (String? newValue) {
                     setState(() {
                       _selectedSubDistrict = newValue;
                     });
                   },
+
                   validator: (value) {
                     if (value == null) {
                       return 'Please select a Sub-District';
@@ -283,10 +334,12 @@ class _BloodPostState extends State<BloodPost> {
                   dropdownDecoratorProps: DropDownDecoratorProps(
                     dropdownSearchDecoration: InputDecoration(
                       hintText: "Please Select District",
+                      hintStyle: TextStyle(color: Colors.white),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
+                    baseStyle: TextStyle(color: Colors.white), // Set the selected text color to white
                   ),
                   popupProps: PopupProps.menu(
                     showSearchBox: true,
@@ -295,6 +348,12 @@ class _BloodPostState extends State<BloodPost> {
                     setState(() {
                       _selectedDistrict = newValue;
                     });
+                  },
+                  dropdownBuilder: (context, selectedItem) {
+                    return Text(
+                      selectedItem ?? "Please Select District",
+                      style: TextStyle(color: Colors.white),
+                    );
                   },
                   validator: (value) {
                     if (value == null) {
@@ -315,7 +374,7 @@ class _BloodPostState extends State<BloodPost> {
                         }),
                         child: Text(_operationDate == null
                             ? 'Select operation date'
-                            : DateFormat.yMd().format(_operationDate!)),
+                            : DateFormat.yMd().format(_operationDate!),style: TextStyle(color: Colors.white),),
                       ),
                     ),
                     Expanded(
@@ -328,7 +387,7 @@ class _BloodPostState extends State<BloodPost> {
                         child: Text(_lastApplicationDate == null
                             ? 'Select Last Application Date'
                             : DateFormat.yMd()
-                            .format(_lastApplicationDate!)),
+                            .format(_lastApplicationDate!),style: TextStyle(color: Colors.white),),
                       ),
                     ),
                   ],

@@ -141,11 +141,11 @@ class _SuggestedBloodPostsState extends State<SuggestedBloodPosts> {
         title: Text("Suggested Blood Posts", style: appFontStyle(25, texColorLight)),
         centerTitle: true,
         actions: [
-          TextButton(
+          IconButton(
             onPressed: () {
               _navigateToAppliedBloodPost();
             },
-            child: Text("Applied", style: appFontStyle(16, texColorLight)),
+            icon: Icon(Icons.bloodtype_outlined),
           ),
         ],
       ),
@@ -195,6 +195,7 @@ class _SuggestedBloodPostsState extends State<SuggestedBloodPosts> {
                         Text('Operation Date: ${data['operation_date'] != null ? DateFormat.yMd().format((data['operation_date'] as Timestamp).toDate()) : 'N/A'}', style: appFontStyle(15)),
                         SizedBox(height: 10),
                         Text('Last Application Date: ${data['last_application_date'] != null ? DateFormat.yMd().format((data['last_application_date'] as Timestamp).toDate()) : 'N/A'}', style: appFontStyle(15)),
+                        Divider(),
                         ElevatedButton(
                           onPressed: () {
                             _applyForBloodPost(document.id);

@@ -114,6 +114,7 @@ class _StoryPostState extends State<StoryPost> {
                 controller: _titleController,
                 decoration: InputDecoration(
                   labelText: 'Title',
+                  labelStyle: TextStyle(color: Colors.white,),
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -122,6 +123,7 @@ class _StoryPostState extends State<StoryPost> {
                 controller: _contentController,
                 decoration: InputDecoration(
                   labelText: 'Content',
+                  labelStyle: TextStyle(color: Colors.white,),
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 5,
@@ -136,12 +138,12 @@ class _StoryPostState extends State<StoryPost> {
               SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _pickImage,
-                child: Text('Pick Image'),
+                child: Text('Pick Image',style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold),),
               ),
               SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _postStory,
-                child: Text('Post Story'),
+                child: Text('Post Story',style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold),),
               ),
             ],
           ),

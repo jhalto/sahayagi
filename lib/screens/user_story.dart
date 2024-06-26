@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sahayagi/screens/app_drawer.dart';
 import 'package:sahayagi/screens/edit_story_screen.dart';
+import 'package:sahayagi/screens/story_post.dart';
 import 'package:sahayagi/widget/common_widget.dart';
 
 class UserStoriesScreen extends StatefulWidget {
@@ -42,9 +44,15 @@ class _UserStoriesScreenState extends State<UserStoriesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: AppDrawer(),
       appBar: AppBar(
         title: Text('My Stories', style: appFontStyle(25, texColorLight)),
         centerTitle: true,
+        actions: [
+          IconButton(onPressed: (){
+            Navigator.push(context, MaterialPageRoute(builder: (context) => StoryPost(),));
+          }, icon: Icon(Icons.web_stories))
+        ],
       ),
       body: StreamBuilder<List<DocumentSnapshot>>(
         stream: _fetchUserStories(),

@@ -28,6 +28,7 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
   String? _selectedDistrict;
 
   File? _image;
+  String? _imageUrl;
   final picker = ImagePicker();
 
   @override
@@ -52,6 +53,7 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
               _selectedBloodGroup = data['blood_group'] ?? '';
               _selectedSubDistrict = data['sub_district'] ?? '';
               _selectedDistrict = data['district'] ?? '';
+              _imageUrl = data['imageUrl'] ?? '';
             });
           }
         }
@@ -145,6 +147,11 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
                   ? CircleAvatar(
                 radius: 50,
                 backgroundImage: FileImage(_image!),
+              )
+                  : _imageUrl != null && _imageUrl!.isNotEmpty
+                  ? CircleAvatar(
+                radius: 50,
+                backgroundImage: NetworkImage(_imageUrl!),
               )
                   : CircleAvatar(
                 radius: 50,

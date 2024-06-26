@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:sahayagi/screens/blood_post.dart';
 
 import 'package:sahayagi/screens/edit_posted_blood_post.dart';
 
@@ -55,9 +56,9 @@ class _PostedBloodPostState extends State<PostedBloodPost> {
         actions: [
           IconButton(
             onPressed: () {
-              // Add functionality for adding new posts
+                Navigator.push(context, MaterialPageRoute(builder: (context) => BloodPost(),));
             },
-            icon: const Icon(Icons.add_card_outlined),
+            icon: const Icon(Icons.add_box_rounded),
           ),
         ],
       ),
@@ -118,7 +119,7 @@ class _PostedBloodPostState extends State<PostedBloodPost> {
             children: [
               Text('Posted by: ${data['user_name'] ?? 'Unknown'}', style: appFontStyle(15, texColorDark, FontWeight.bold)),
               const SizedBox(height: 10),
-              Text(data['blood_group'] ?? 'Empty', style: appFontStyle(20, texColorDark, FontWeight.bold)),
+              Text(data['blood_group'] ?? 'Empty', style: appFontStyle(18, texColorDark, FontWeight.bold)),
               const SizedBox(height: 10),
               Text(data['description'] ?? 'No description', style: appFontStyle(15)),
               const SizedBox(height: 10),
@@ -129,7 +130,7 @@ class _PostedBloodPostState extends State<PostedBloodPost> {
               Text('Location:', style: appFontStyle(15, texColorDark, FontWeight.bold)),
               Text('Sub District: ${data['sub_district'] ?? 'N/A'}', style: appFontStyle(15)),
               Text('District: ${data['district'] ?? 'N/A'}', style: appFontStyle(15)),
-              const Spacer(),
+              Divider(),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(

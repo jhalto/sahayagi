@@ -31,18 +31,22 @@ class _ConvexBarDemoState extends State<ConvexBarDemo> {
   NotificationServices notificationServices = NotificationServices();
 
 
-  List<Widget> pages = [HomePage(),UserStoriesScreen(),const AllEvents(),const PostedEvents(),PostedBloodPost(),SuggestedBloodPosts()];
+  List<Widget> pages = [HomePage(),UserStoriesScreen(),const SugestedEvents(),const PostedEvents(),PostedBloodPost(),SuggestedBloodPosts()];
   int index =0;
   @override
   void initState() {
+    super.initState();
     notificationServices.requestNotificationPermission();
-
+    notificationServices.firebaseInit(context);
+    notificationServices.setupInteractMessage(context);
+    notificationServices.foregroundMessage();
 
     notificationServices.getDeviceToken().then((value) {
       print('device token: ${value}');
     });
-    super.initState();
-    notificationServices.firebaseInit();
+    notificationServices.getRefreshToken();
+
+
   }
   @override
   Widget build(BuildContext context) {

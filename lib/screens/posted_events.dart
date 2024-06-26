@@ -2,8 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:sahayagi/main.dart';
 import 'package:sahayagi/screens/applied_users_in_events.dart';
 import 'package:sahayagi/screens/edit_posted_events.dart';
+import 'package:sahayagi/screens/event_post.dart';
 
 import '../widget/common_widget.dart';
 import 'app_drawer.dart';
@@ -54,7 +56,7 @@ class _PostedEventsState extends State<PostedEvents> {
         actions: [
           IconButton(
             onPressed: () {
-              // Add functionality for adding new events
+              Navigator.push(context, MaterialPageRoute(builder: (context) => EventPost()));
             },
             icon: const Icon(Icons.add_card_outlined),
           ),
@@ -109,6 +111,7 @@ class _PostedEventsState extends State<PostedEvents> {
     String skills = (data['skills'] as List<dynamic>?)?.join(', ') ?? 'N/A';
 
     return Container(
+
       height: 370,
       child: Card(
         margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -130,11 +133,11 @@ class _PostedEventsState extends State<PostedEvents> {
               Text('Location:', style: appFontStyle(15, texColorDark, FontWeight.bold)),
               Text('Sub District: ${data['sub_district'] ?? 'N/A'}', style: appFontStyle(15)),
               Text('District: ${data['district'] ?? 'N/A'}', style: appFontStyle(15)),
-              const Spacer(),
+              Divider(),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  
                   children: [
                     ElevatedButton(
                       onPressed: () {
@@ -179,6 +182,7 @@ class _PostedEventsState extends State<PostedEvents> {
                       child: const Text("Delete"),
                     ),
                     ElevatedButton(
+
                       onPressed: () {
                         Navigator.push(
                           context,

@@ -5,14 +5,14 @@ import 'package:sahayagi/screens/app_drawer.dart';
 import 'package:sahayagi/screens/applied_events.dart';
 import 'package:sahayagi/widget/common_widget.dart'; // Assuming this is where appFontStyle is defined
 
-class AllEvents extends StatefulWidget {
-  const AllEvents({Key? key});
+class SugestedEvents extends StatefulWidget {
+  const SugestedEvents({Key? key});
 
   @override
-  State<AllEvents> createState() => _AllEventsState();
+  State<SugestedEvents> createState() => _SugestedEventsState();
 }
 
-class _AllEventsState extends State<AllEvents> {
+class _SugestedEventsState extends State<SugestedEvents> {
   List<String> _userSkills = [];
 
   @override
@@ -194,6 +194,7 @@ class _AllEventsState extends State<AllEvents> {
                         Text('Location:', style: appFontStyle(15, texColorDark, FontWeight.bold)),
                         Text('Sub District: ${data['sub_district'] ?? 'N/A'}', style: appFontStyle(15)),
                         Text('District: ${data['district'] ?? 'N/A'}', style: appFontStyle(15)),
+                        Divider(),
                         ElevatedButton(
                           onPressed: () {
                             _registerForEvent(document.id);
