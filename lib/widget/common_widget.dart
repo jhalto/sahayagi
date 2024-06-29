@@ -11,6 +11,13 @@ import 'package:google_fonts/google_fonts.dart';
      fontStyle: fs,
    );
  }
+texStyle([Color?color,FontWeight?fw,FontStyle?fs]){
+  return GoogleFonts.montserrat(
+    color: Colors.white,
+    fontWeight: fw,
+    fontStyle: fs,
+  );
+}
 const Color appColorLight=Color(0xff216FD5);
 const Color appColorDark=Color(0xff000000);
 const Color texColorLight=Color(0xffFFFFFF);

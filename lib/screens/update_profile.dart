@@ -177,6 +177,7 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
                 controller: _nameController,
                 decoration: InputDecoration(
                   hintText: 'Enter Name',
+                  hintStyle: TextStyle(color: Colors.white),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -187,6 +188,7 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
                 controller: _phoneController,
                 decoration: InputDecoration(
                   hintText: 'Enter Phone Number',
+                  hintStyle: TextStyle(color: Colors.white),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -197,6 +199,7 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
                 controller: _ageController,
                 decoration: InputDecoration(
                   hintText: 'Enter Age',
+                  hintStyle: TextStyle(color: Colors.white),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -207,7 +210,7 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
                 items: skills.map((skill) => MultiSelectItem<String>(skill, skill)).toList(),
                 title: Text("Skills"),
                 searchable: true,  // Enable search
-                selectedColor: Colors.blue,
+                selectedColor: Colors.black,
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: Colors.grey,
@@ -216,12 +219,12 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
                 ),
                 buttonIcon: Icon(
                   Icons.arrow_drop_down,
-                  color: Colors.grey,
+                  color: Colors.white,
                 ),
                 buttonText: Text(
                   "Select Skills",
                   style: TextStyle(
-                    color: Colors.grey,
+                    color: Colors.white,
                     fontSize: 16,
                   ),
                 ),
@@ -239,10 +242,12 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
                 dropdownDecoratorProps: DropDownDecoratorProps(
                   dropdownSearchDecoration: InputDecoration(
                     hintText: "Please Select Blood Group",
+                    hintStyle: TextStyle(color: Colors.white),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
+                  baseStyle: TextStyle(color: Colors.white)
                 ),
                 popupProps: PopupProps.menu(
                   showSearchBox: true,
@@ -266,10 +271,12 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
                 dropdownDecoratorProps: DropDownDecoratorProps(
                   dropdownSearchDecoration: InputDecoration(
                     hintText: "Please Select Sub-District",
+                    hintStyle: TextStyle(color: Colors.white),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
+                  baseStyle: TextStyle(color: Colors.white),
                 ),
                 popupProps: PopupProps.menu(
                   showSearchBox: true,
@@ -293,10 +300,12 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
                 dropdownDecoratorProps: DropDownDecoratorProps(
                   dropdownSearchDecoration: InputDecoration(
                     hintText: "Please Select District",
+                    hintStyle: TextStyle(color: Colors.white),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
+                 baseStyle: TextStyle(color: Colors.white),
                 ),
                 popupProps: PopupProps.menu(
                   showSearchBox: true,

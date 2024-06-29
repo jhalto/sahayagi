@@ -2,7 +2,9 @@
     <application
         android:label="sahayagi"
         android:name="${applicationName}"
-        android:icon="@mipmap/launcher_icon">
+        android:icon="@mipmap/launcher_icon"
+        android:enableOnBackInvokedCallback="true"
+        android:roundIcon="@mipmap/launcher_icon_rouund">
         <activity
             android:name=".MainActivity"
             android:exported="true"

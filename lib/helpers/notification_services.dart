@@ -28,7 +28,7 @@ class NotificationServices {
     if (settings.authorizationStatus == AuthorizationStatus.provisional) {
       print('User granted provisional permission');
     } else {
-      AppSettings.openAppSettings();
+      // AppSettings.openAppSettings();
       print("User denied permission");
     }
   }

@@ -6,9 +6,11 @@ import 'package:sahayagi/main.dart';
 import 'package:sahayagi/screens/applied_users_in_events.dart';
 import 'package:sahayagi/screens/edit_posted_events.dart';
 import 'package:sahayagi/screens/event_post.dart';
+import 'package:sahayagi/screens/manage_message.dart';
 
 import '../widget/common_widget.dart';
 import 'app_drawer.dart';
+import 'message_list_page.dart';
 
 class PostedEvents extends StatefulWidget {
   const PostedEvents({super.key});
@@ -60,6 +62,13 @@ class _PostedEventsState extends State<PostedEvents> {
             },
             icon: const Icon(Icons.add_card_outlined),
           ),
+          IconButton(
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => ManageMessagesPage()));
+            },
+            icon: Icon(Icons.message),
+          ),
         ],
       ),
       body: FutureBuilder<void>(
@@ -110,94 +119,90 @@ class _PostedEventsState extends State<PostedEvents> {
   Widget _buildEventCard(BuildContext context, Map<String, dynamic> data, String documentId) {
     String skills = (data['skills'] as List<dynamic>?)?.join(', ') ?? 'N/A';
 
-    return Container(
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Posted by: ${data['user_name'] ?? 'Unknown'}', style: appFontStyle(15, texColorDark, FontWeight.bold)),
+            const SizedBox(height: 10),
+            Text(data['title'] ?? 'Empty', style: appFontStyle(20, texColorDark, FontWeight.bold)),
+            const SizedBox(height: 10),
+            Text(data['description'] ?? 'No description', style: appFontStyle(15)),
+            const SizedBox(height: 10),
+            Text('Event Type: ${data['event_type'] ?? 'N/A'}', style: appFontStyle(15)),
+            const SizedBox(height: 10),
+            Text("Needed Skill: ${skills}",style: appFontStyle(15,),),
+            const SizedBox(height: 10),
+            Text('Location:', style: appFontStyle(15, texColorDark, FontWeight.bold)),
+            Text('Sub District: ${data['sub_district'] ?? 'N/A'}', style: appFontStyle(15)),
+            Text('District: ${data['district'] ?? 'N/A'}', style: appFontStyle(15)),
+            Divider(),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
 
-      height: 370,
-      child: Card(
-        margin: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Posted by: ${data['user_name'] ?? 'Unknown'}', style: appFontStyle(15, texColorDark, FontWeight.bold)),
-              const SizedBox(height: 10),
-              Text(data['title'] ?? 'Empty', style: appFontStyle(20, texColorDark, FontWeight.bold)),
-              const SizedBox(height: 10),
-              Text(data['description'] ?? 'No description', style: appFontStyle(15)),
-              const SizedBox(height: 10),
-              Text('Event Type: ${data['event_type'] ?? 'N/A'}', style: appFontStyle(15)),
-              const SizedBox(height: 10),
-              Text("Needed Skill: ${skills}",style: appFontStyle(15,),),
-              const SizedBox(height: 10),
-              Text('Location:', style: appFontStyle(15, texColorDark, FontWeight.bold)),
-              Text('Sub District: ${data['sub_district'] ?? 'N/A'}', style: appFontStyle(15)),
-              Text('District: ${data['district'] ?? 'N/A'}', style: appFontStyle(15)),
-              Divider(),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => EditPostedEvent(documentId: documentId),
-                          ),
-                        );
-                      },
-                      child: const Text("Edit"),
-                    ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        bool confirmDelete = await showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text('Delete Event'),
-                              content: Text('Are you sure you want to delete this event?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(false),
-                                  child: Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop(true);
-                                  },
-                                  child: Text('Delete'),
-                                ),
-                              ],
-                            );
-                          },
-                        ) ?? false;
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditPostedEvent(documentId: documentId),
+                        ),
+                      );
+                    },
+                    child: const Text("Edit"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      bool confirmDelete = await showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Delete Event'),
+                            content: Text('Are you sure you want to delete this event?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(false),
+                                child: Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop(true);
+                                },
+                                child: Text('Delete'),
+                              ),
+                            ],
+                          );
+                        },
+                      ) ?? false;
 
-                        if (confirmDelete) {
-                          _deleteEvent(documentId);
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(),
-                      child: const Text("Delete"),
-                    ),
-                    ElevatedButton(
+                      if (confirmDelete) {
+                        _deleteEvent(documentId);
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(),
+                    child: const Text("Delete"),
+                  ),
+                  ElevatedButton(
 
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AppliedUsersInEvent(eventId: documentId),
-                          ),
-                        );
-                      },
-                      child: const Text("View Applicants"),
-                    ),
-                  ],
-                ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AppliedUsersInEvent(eventId: documentId),
+                        ),
+                      );
+                    },
+                    child: const Text("View Applicants"),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:sahayagi/screens/manage_message.dart';
+import 'package:sahayagi/screens/message_list_page.dart';
 import 'package:sahayagi/screens/post_option.dart';
 import 'package:share/share.dart';
 
@@ -72,7 +74,7 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             onPressed: () {
               Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => ChatScreen()));
+                  MaterialPageRoute(builder: (context) => ManageMessagesPage()));
             },
             icon: Icon(Icons.message),
           ),

@@ -5,6 +5,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../widget/common_widget.dart';
+
 class StoryPost extends StatefulWidget {
   const StoryPost({super.key});
 
@@ -20,16 +22,48 @@ class _StoryPostState extends State<StoryPost> {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      if (pickedFile != null) {
-        _image = File(pickedFile.path);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('No image selected')),
-        );
-      }
-    });
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: Icon(Icons.photo_library),
+            title: Text('Pick from Gallery'),
+            onTap: () async {
+              Navigator.pop(context);
+              final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+              setState(() {
+                if (pickedFile != null) {
+                  _image = File(pickedFile.path);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('No image selected')),
+                  );
+                }
+              });
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.camera_alt),
+            title: Text('Pick from Camera'),
+            onTap: () async {
+              Navigator.pop(context);
+              final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+              setState(() {
+                if (pickedFile != null) {
+                  _image = File(pickedFile.path);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('No image selected')),
+                  );
+                }
+              });
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _postStory() async {
@@ -123,7 +157,7 @@ class _StoryPostState extends State<StoryPost> {
                 controller: _contentController,
                 decoration: InputDecoration(
                   labelText: 'Content',
-                  labelStyle: TextStyle(color: Colors.white,),
+                  labelStyle: texStyle(),
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 5,

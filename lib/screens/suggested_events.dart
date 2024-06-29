@@ -3,7 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sahayagi/screens/app_drawer.dart';
 import 'package:sahayagi/screens/applied_events.dart';
+import 'package:sahayagi/screens/manage_message.dart';
 import 'package:sahayagi/widget/common_widget.dart'; // Assuming this is where appFontStyle is defined
+import '../helpers/notification_helper.dart';
+import 'message_list_page.dart'; // Make sure this path is correct
 
 class SugestedEvents extends StatefulWidget {
   const SugestedEvents({Key? key});
@@ -76,7 +79,7 @@ class _SugestedEventsState extends State<SugestedEvents> {
     });
   }
 
-  Future<void> _registerForEvent(String eventId) async {
+  Future<void> _registerForEvent(String eventId, String eventOwnerId) async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User not logged in')));
@@ -111,12 +114,29 @@ class _SugestedEventsState extends State<SugestedEvents> {
         'timestamp': FieldValue.serverTimestamp(),
       });
 
+      // Fetch event owner's device token
+      DocumentSnapshot eventOwnerDoc = await FirebaseFirestore.instance.collection('users').doc(eventOwnerId).get();
+      String? eventOwnerDeviceToken = eventOwnerDoc['device_token'];
+
+      if (eventOwnerDeviceToken != null) {
+        // Send notification to event owner
+        NotificationHelper notificationHelper = NotificationHelper();
+        await notificationHelper.sendPushNotification(
+          eventOwnerDeviceToken,
+          'New Application',
+          'You have a new application for your event.',
+        );
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Successfully applied for the event')));
 
       // Trigger rebuild to refresh the events list
       setState(() {});
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to apply for the event: $e')));
+      setState(() {
+
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to send notification for the event: $e')));
     }
   }
 
@@ -142,6 +162,13 @@ class _SugestedEventsState extends State<SugestedEvents> {
             onPressed: _navigateToAppliedEvents,
             icon: Icon(Icons.app_registration_rounded),
           ),
+          IconButton(
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => ManageMessagesPage()));
+            },
+            icon: Icon(Icons.message),
+          ),
         ],
       ),
       body: StreamBuilder<List<DocumentSnapshot>>(
@@ -152,12 +179,12 @@ class _SugestedEventsState extends State<SugestedEvents> {
           }
 
           if (snapshot.hasError) {
-            return Center(child: Text('Something went wrong: ${snapshot.error}'));
+            return Center(child: Text('Something went wrong: ${snapshot.error}',style: texStyle(),));
           }
 
           List<DocumentSnapshot> events = snapshot.data ?? [];
           if (events.isEmpty) {
-            return Center(child: Text('No matching events found'));
+            return Center(child: Text('No matching events found',style: texStyle(),));
           }
 
           return ListView.builder(
@@ -170,39 +197,37 @@ class _SugestedEventsState extends State<SugestedEvents> {
               // Find matching skills
               List<String> matchingSkills = _userSkills.where((skill) => eventSkills.contains(skill)).toList();
 
-              return Container(
-                child: Card(
-                  margin: EdgeInsets.symmetric(vertical: 8.0),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Posted by: ${data['user_name'] ?? 'Unknown'}', style: appFontStyle(15, texColorDark, FontWeight.bold)),
-                        SizedBox(height: 10),
-                        Text(data['title'] ?? 'Empty', style: appFontStyle(20, texColorDark, FontWeight.bold)),
-                        SizedBox(height: 10),
-                        Text(data['description'] ?? 'No description', style: appFontStyle(15)),
-                        SizedBox(height: 10),
-                        Text('Event Type: ${data['event_type'] ?? 'N/A'}', style: appFontStyle(15)),
-                        SizedBox(height: 10),
-                        Text('Skills Required:', style: appFontStyle(15, texColorDark, FontWeight.bold)),
-                        Text(eventSkills.join(', '), style: appFontStyle(15)),
-                        SizedBox(height: 10),
-                        if (matchingSkills.isNotEmpty)
-                          Text('Matching Skills: ${matchingSkills.join(', ')}', style: appFontStyle(15, Colors.green)),
-                        Text('Location:', style: appFontStyle(15, texColorDark, FontWeight.bold)),
-                        Text('Sub District: ${data['sub_district'] ?? 'N/A'}', style: appFontStyle(15)),
-                        Text('District: ${data['district'] ?? 'N/A'}', style: appFontStyle(15)),
-                        Divider(),
-                        ElevatedButton(
-                          onPressed: () {
-                            _registerForEvent(document.id);
-                          },
-                          child: Text("Apply"),
-                        ),
-                      ],
-                    ),
+              return Card(
+                margin: EdgeInsets.symmetric(vertical: 8.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Posted by: ${data['user_name'] ?? 'Unknown'}', style: appFontStyle(15, texColorDark, FontWeight.bold)),
+                      SizedBox(height: 10),
+                      Text(data['title'] ?? 'Empty', style: appFontStyle(20, texColorDark, FontWeight.bold)),
+                      SizedBox(height: 10),
+                      Text(data['description'] ?? 'No description', style: appFontStyle(15)),
+                      SizedBox(height: 10),
+                      Text('Event Type: ${data['event_type'] ?? 'N/A'}', style: appFontStyle(15)),
+                      SizedBox(height: 10),
+                      Text('Skills Required:', style: appFontStyle(15, texColorDark, FontWeight.bold)),
+                      Text(eventSkills.join(', '), style: appFontStyle(15)),
+                      SizedBox(height: 10),
+                      if (matchingSkills.isNotEmpty)
+                        Text('Matching Skills: ${matchingSkills.join(', ')}', style: appFontStyle(15, Colors.green)),
+                      Text('Location:', style: appFontStyle(15, texColorDark, FontWeight.bold)),
+                      Text('Sub District: ${data['sub_district'] ?? 'N/A'}', style: appFontStyle(15)),
+                      Text('District: ${data['district'] ?? 'N/A'}', style: appFontStyle(15)),
+                      Divider(),
+                      ElevatedButton(
+                        onPressed: () {
+                          _registerForEvent(document.id, data['user_id']);
+                        },
+                        child: Text("Apply"),
+                      ),
+                    ],
                   ),
                 ),
               );

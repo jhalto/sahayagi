@@ -145,42 +145,56 @@ class MyHelper {
   }
 
   Future<void> logOut(BuildContext context) async {
-    await FirebaseAuth.instance.signOut();
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SignIn(),
-      ),
-          (route) => false,
-    );
-  }
-}
-class NotificationService {
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+    User? currentUser = FirebaseAuth.instance.currentUser;
 
-  Future<void> init() async {
-    NotificationSettings settings = await _firebaseMessaging.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-      sound: true,
-    );
+    if (currentUser != null) {
+      String currentUserId = currentUser.uid;
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('User granted permission');
-      String? token = await _firebaseMessaging.getToken();
-      print("FCM Token: $token");
+      // Clear the device_token field
+      await FirebaseFirestore.instance.collection('users').doc(currentUserId).update({
+        'device_token': FieldValue.delete(),
+      });
 
-      // Save the FCM token to Firestore or use it as needed
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user != null && token != null) {
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).update({'fcm_token': token});
-      }
-    } else {
-      print('User declined or has not accepted permission');
+      // Sign out the user
+      await FirebaseAuth.instance.signOut();
+
+      // Navigate to the sign-in page and remove all previous routes
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SignIn(),
+        ),
+            (route) => false,
+      );
     }
   }
 }
+// class NotificationService {
+//   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+//
+//   Future<void> init() async {
+//     NotificationSettings settings = await _firebaseMessaging.requestPermission(
+//       alert: true,
+//       announcement: false,
+//       badge: true,
+//       carPlay: false,
+//       criticalAlert: false,
+//       provisional: false,
+//       sound: true,
+//     );
+//
+//     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+//       print('User granted permission');
+//       String? token = await _firebaseMessaging.getToken();
+//       print("FCM Token: $token");
+//
+//       // Save the FCM token to Firestore or use it as needed
+//       User? user = FirebaseAuth.instance.currentUser;
+//       if (user != null && token != null) {
+//         await FirebaseFirestore.instance.collection('users').doc(user.uid).update({'fcm_token': token});
+//       }
+//     } else {
+//       print('User declined or has not accepted permission');
+//     }
+//   }
+// }

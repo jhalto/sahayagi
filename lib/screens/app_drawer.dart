@@ -2,11 +2,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:sahayagi/screens/manage_friends.dart';
 import 'package:sahayagi/screens/update_profile.dart';
 import 'package:sahayagi/screens/change_password.dart';  // Import the new screen
 
 import '../helpers/helper.dart';
 import '../widget/common_widget.dart';
+import 'message_list_page.dart';
+import 'search_friend.dart';
+import 'manage_friend_request_page.dart';
 
 class AppDrawer extends StatefulWidget {
   const AppDrawer({super.key});
@@ -86,6 +90,37 @@ class _AppDrawerState extends State<AppDrawer> {
               );
             },
           ),
+          ListTile(
+            title: Text('Search Friend',style: TextStyle(color: texColorLight),),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => FriendRequestPage()),
+              );
+            },
+          ),
+          ListTile(
+            title: Text('Manage Friend Requests',style: TextStyle(color: Colors.white),),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ManageFriendRequestsPage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.people,color: texColorLight,),
+            title: Text('Friend List',style: TextStyle(color: Colors.white),),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ManageFriendsPage(),
+                ),
+              );
+            },
+          ),
+
           Padding(
             padding: const EdgeInsets.only(left: 40, right: 40, bottom: 20, top: 20),
             child: ElevatedButton(

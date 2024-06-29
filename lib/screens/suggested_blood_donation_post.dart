@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sahayagi/screens/app_drawer.dart';
 import 'package:sahayagi/screens/applied_blood_post.dart';
+import 'package:sahayagi/screens/manage_message.dart';
 import 'package:sahayagi/widget/common_widget.dart';
+import '../helpers/notification_helper.dart';
+import 'message_list_page.dart'; // Make sure this path is correct
 
 class SuggestedBloodPosts extends StatefulWidget {
   const SuggestedBloodPosts({Key? key}) : super(key: key);
@@ -80,7 +83,7 @@ class _SuggestedBloodPostsState extends State<SuggestedBloodPosts> {
     });
   }
 
-  Future<void> _applyForBloodPost(String postId) async {
+  Future<void> _applyForBloodPost(String postId, String postOwnerId) async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User not logged in')));
@@ -113,6 +116,20 @@ class _SuggestedBloodPostsState extends State<SuggestedBloodPosts> {
         'post_id': postId,
         'timestamp': FieldValue.serverTimestamp(),
       });
+
+      // Fetch post owner's device token
+      DocumentSnapshot postOwnerDoc = await FirebaseFirestore.instance.collection('users').doc(postOwnerId).get();
+      String? postOwnerDeviceToken = postOwnerDoc['device_token'];
+
+      if (postOwnerDeviceToken != null) {
+        // Send notification to post owner
+        NotificationHelper notificationHelper = NotificationHelper();
+        await notificationHelper.sendPushNotification(
+          postOwnerDeviceToken,
+          'New Blood Post Application',
+          'You have a new application for your blood post.',
+        );
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Successfully applied for the blood post')));
 
@@ -147,6 +164,13 @@ class _SuggestedBloodPostsState extends State<SuggestedBloodPosts> {
             },
             icon: Icon(Icons.bloodtype_outlined),
           ),
+          IconButton(
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => ManageMessagesPage()));
+            },
+            icon: Icon(Icons.message),
+          ),
         ],
       ),
       body: _userBloodGroup == null || _userDistrict == null
@@ -172,38 +196,36 @@ class _SuggestedBloodPostsState extends State<SuggestedBloodPosts> {
             itemBuilder: (context, index) {
               DocumentSnapshot document = bloodPosts[index];
               Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
-              return Container(
-                child: Card(
-                  margin: EdgeInsets.symmetric(vertical: 8.0),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Posted by: ${data['user_name'] ?? 'Unknown'}', style: appFontStyle(15, texColorDark, FontWeight.bold)),
-                        SizedBox(height: 10),
-                        Text('Hospital: ${data['hospital'] ?? 'N/A'}', style: appFontStyle(20, texColorDark, FontWeight.bold)),
-                        SizedBox(height: 10),
-                        Text('Description: ${data['description'] ?? 'No description'}', style: appFontStyle(15)),
-                        SizedBox(height: 10),
-                        Text('Blood Group: ${data['blood_group'] ?? 'No blood group'}', style: appFontStyle(15)),
-                        SizedBox(height: 10),
-                        Text('Phone: ${data['phone'] ?? 'N/A'}', style: appFontStyle(15)),
-                        SizedBox(height: 10),
-                        Text('Location: ${data['location_details'] ?? 'N/A'}', style: appFontStyle(15)),
-                        SizedBox(height: 10),
-                        Text('Operation Date: ${data['operation_date'] != null ? DateFormat.yMd().format((data['operation_date'] as Timestamp).toDate()) : 'N/A'}', style: appFontStyle(15)),
-                        SizedBox(height: 10),
-                        Text('Last Application Date: ${data['last_application_date'] != null ? DateFormat.yMd().format((data['last_application_date'] as Timestamp).toDate()) : 'N/A'}', style: appFontStyle(15)),
-                        Divider(),
-                        ElevatedButton(
-                          onPressed: () {
-                            _applyForBloodPost(document.id);
-                          },
-                          child: Text("Apply"),
-                        ),
-                      ],
-                    ),
+              return Card(
+                margin: EdgeInsets.symmetric(vertical: 8.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Posted by: ${data['user_name'] ?? 'Unknown'}', style: appFontStyle(15, texColorDark, FontWeight.bold)),
+                      SizedBox(height: 10),
+                      Text('Hospital: ${data['hospital'] ?? 'N/A'}', style: appFontStyle(20, texColorDark, FontWeight.bold)),
+                      SizedBox(height: 10),
+                      Text('Description: ${data['description'] ?? 'No description'}', style: appFontStyle(15)),
+                      SizedBox(height: 10),
+                      Text('Blood Group: ${data['blood_group'] ?? 'No blood group'}', style: appFontStyle(15)),
+                      SizedBox(height: 10),
+                      Text('Phone: ${data['phone'] ?? 'N/A'}', style: appFontStyle(15)),
+                      SizedBox(height: 10),
+                      Text('Location: ${data['location_details'] ?? 'N/A'}', style: appFontStyle(15)),
+                      SizedBox(height: 10),
+                      Text('Operation Date: ${data['operation_date'] != null ? DateFormat.yMd().format((data['operation_date'] as Timestamp).toDate()) : 'N/A'}', style: appFontStyle(15)),
+                      SizedBox(height: 10),
+                      Text('Last Application Date: ${data['last_application_date'] != null ? DateFormat.yMd().format((data['last_application_date'] as Timestamp).toDate()) : 'N/A'}', style: appFontStyle(15)),
+                      Divider(),
+                      ElevatedButton(
+                        onPressed: () {
+                          _applyForBloodPost(document.id, data['user_id']);
+                        },
+                        child: Text("Apply"),
+                      ),
+                    ],
                   ),
                 ),
               );

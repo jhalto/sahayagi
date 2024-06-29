@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:sahayagi/widget/common_widget.dart';
 
 class EditStoryScreen extends StatefulWidget {
   final String storyId;
@@ -30,16 +31,48 @@ class _EditStoryScreenState extends State<EditStoryScreen> {
   }
 
   Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      if (pickedFile != null) {
-        _image = File(pickedFile.path);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('No image selected')),
-        );
-      }
-    });
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: Icon(Icons.photo_library),
+            title: Text('Pick from Gallery'),
+            onTap: () async {
+              Navigator.pop(context);
+              final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+              setState(() {
+                if (pickedFile != null) {
+                  _image = File(pickedFile.path);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('No image selected')),
+                  );
+                }
+              });
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.camera_alt),
+            title: Text('Pick from Camera'),
+            onTap: () async {
+              Navigator.pop(context);
+              final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+              setState(() {
+                if (pickedFile != null) {
+                  _image = File(pickedFile.path);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('No image selected')),
+                  );
+                }
+              });
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _updateStory() async {
@@ -101,7 +134,7 @@ class _EditStoryScreenState extends State<EditStoryScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: Text('Edit Story'),
+        title: Text('Edit Story',style: texStyle(),),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -111,17 +144,19 @@ class _EditStoryScreenState extends State<EditStoryScreen> {
           child: Column(
             children: [
               TextField(
-                controller: _titleController,
+                controller: _titleController,style: texStyle(),
                 decoration: InputDecoration(
                   labelText: 'Title',
+                  labelStyle: texStyle(),
                   border: OutlineInputBorder(),
                 ),
               ),
               SizedBox(height: 16),
               TextField(
-                controller: _contentController,
+                controller: _contentController,style: texStyle(),
                 decoration: InputDecoration(
                   labelText: 'Content',
+                  labelStyle: texStyle(),
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 5,

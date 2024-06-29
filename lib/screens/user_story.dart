@@ -3,8 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sahayagi/screens/app_drawer.dart';
 import 'package:sahayagi/screens/edit_story_screen.dart';
+import 'package:sahayagi/screens/manage_message.dart';
 import 'package:sahayagi/screens/story_post.dart';
 import 'package:sahayagi/widget/common_widget.dart';
+
+import 'message_list_page.dart';
 
 class UserStoriesScreen extends StatefulWidget {
   const UserStoriesScreen({Key? key}) : super(key: key);
@@ -51,7 +54,14 @@ class _UserStoriesScreenState extends State<UserStoriesScreen> {
         actions: [
           IconButton(onPressed: (){
             Navigator.push(context, MaterialPageRoute(builder: (context) => StoryPost(),));
-          }, icon: Icon(Icons.web_stories))
+          }, icon: Icon(Icons.web_stories)),
+          IconButton(
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => ManageMessagesPage()));
+            },
+            icon: Icon(Icons.message),
+          ),
         ],
       ),
       body: StreamBuilder<List<DocumentSnapshot>>(
@@ -67,7 +77,7 @@ class _UserStoriesScreenState extends State<UserStoriesScreen> {
 
           List<DocumentSnapshot> stories = snapshot.data ?? [];
           if (stories.isEmpty) {
-            return Center(child: Text('No stories found'));
+            return Center(child: Text('No stories found',style: texStyle(),));
           }
 
           return ListView.builder(
@@ -76,77 +86,75 @@ class _UserStoriesScreenState extends State<UserStoriesScreen> {
               DocumentSnapshot document = stories[index];
               Map<String, dynamic> data = document.data() as Map<String, dynamic>;
 
-              return Container(
-                child: Card(
-                  margin: EdgeInsets.symmetric(vertical: 8.0),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          data['title'] ?? 'No Title',
-                          style: appFontStyle(20, texColorDark, FontWeight.bold),
-                        ),
-                        SizedBox(height: 10),
-                        if (data['image_url'] != null)
-                          Image.network(data['image_url']),
-                        SizedBox(height: 10),
-                        Text(
-                          data['content'] ?? 'No Content',
-                          style: appFontStyle(15),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          'Posted on: ${data['timestamp'] != null ? (data['timestamp'] as Timestamp).toDate().toString() : 'Unknown'}',
-                          style: appFontStyle(12, Colors.grey),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.edit),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => EditStoryScreen(storyId: document.id, data: data),
-                                  ),
-                                );
-                              },
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.delete),
-                              onPressed: () async {
-                                bool confirmDelete = await showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: Text('Delete Story'),
-                                      content: Text('Are you sure you want to delete this story?'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.of(context).pop(false),
-                                          child: Text('Cancel'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () => Navigator.of(context).pop(true),
-                                          child: Text('Delete'),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ) ?? false;
+              return Card(
+                margin: EdgeInsets.symmetric(vertical: 8.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        data['title'] ?? 'No Title',
+                        style: appFontStyle(20, texColorDark, FontWeight.bold),
+                      ),
+                      SizedBox(height: 10),
+                      if (data['image_url'] != null)
+                        Image.network(data['image_url']),
+                      SizedBox(height: 10),
+                      Text(
+                        data['content'] ?? 'No Content',
+                        style: appFontStyle(15),
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        'Posted on: ${data['timestamp'] != null ? (data['timestamp'] as Timestamp).toDate().toString() : 'Unknown'}',
+                        style: appFontStyle(12, Colors.grey),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditStoryScreen(storyId: document.id, data: data),
+                                ),
+                              );
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete),
+                            onPressed: () async {
+                              bool confirmDelete = await showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text('Delete Story'),
+                                    content: Text('Are you sure you want to delete this story?'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(false),
+                                        child: Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(true),
+                                        child: Text('Delete'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ) ?? false;
 
-                                if (confirmDelete) {
-                                  await _deleteStory(document.id);
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                              if (confirmDelete) {
+                                await _deleteStory(document.id);
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               );
