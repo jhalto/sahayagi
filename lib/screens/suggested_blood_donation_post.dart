@@ -131,6 +131,7 @@ class _SuggestedBloodPostsState extends State<SuggestedBloodPosts> {
         );
       }
 
+      // Success message and refresh
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Successfully applied for the blood post')));
 
       // Refresh the list of applied blood posts and trigger a rebuild to refresh the suggested blood posts list

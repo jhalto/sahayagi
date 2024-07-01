@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:sahayagi/main.dart';
 import 'package:sahayagi/screens/applied_users_in_events.dart';
 import 'package:sahayagi/screens/edit_posted_events.dart';
 import 'package:sahayagi/screens/event_post.dart';
@@ -10,7 +9,6 @@ import 'package:sahayagi/screens/manage_message.dart';
 
 import '../widget/common_widget.dart';
 import 'app_drawer.dart';
-import 'message_list_page.dart';
 
 class PostedEvents extends StatefulWidget {
   const PostedEvents({super.key});
@@ -46,6 +44,16 @@ class _PostedEventsState extends State<PostedEvents> {
         SnackBar(content: Text('Failed to delete event: $e')),
       );
     }
+  }
+
+  Future<int> _getApplicantCount(String eventId) async {
+    QuerySnapshot applicationsSnapshot = await FirebaseFirestore.instance
+        .collection('events')
+        .doc(eventId)
+        .collection('applications')
+        .get();
+
+    return applicationsSnapshot.size;
   }
 
   @override
@@ -106,7 +114,21 @@ class _PostedEventsState extends State<PostedEvents> {
                 padding: const EdgeInsets.all(8.0),
                 children: eventSnapshot.data!.docs.map((DocumentSnapshot document) {
                   Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
-                  return _buildEventCard(context, data, document.id);
+                  return FutureBuilder<int>(
+                    future: _getApplicantCount(document.id),
+                    builder: (context, applicantSnapshot) {
+                      if (applicantSnapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      if (applicantSnapshot.hasError) {
+                        return Center(child: Text('Something went wrong: ${applicantSnapshot.error}'));
+                      }
+
+                      int applicantCount = applicantSnapshot.data ?? 0;
+                      return _buildEventCard(context, data, document.id, applicantCount);
+                    },
+                  );
                 }).toList(),
               );
             },
@@ -116,7 +138,7 @@ class _PostedEventsState extends State<PostedEvents> {
     );
   }
 
-  Widget _buildEventCard(BuildContext context, Map<String, dynamic> data, String documentId) {
+  Widget _buildEventCard(BuildContext context, Map<String, dynamic> data, String documentId, int applicantCount) {
     String skills = (data['skills'] as List<dynamic>?)?.join(', ') ?? 'N/A';
 
     return Card(
@@ -134,16 +156,17 @@ class _PostedEventsState extends State<PostedEvents> {
             const SizedBox(height: 10),
             Text('Event Type: ${data['event_type'] ?? 'N/A'}', style: appFontStyle(15)),
             const SizedBox(height: 10),
-            Text("Needed Skill: ${skills}",style: appFontStyle(15,),),
+            Text("Needed Skill: ${skills}", style: appFontStyle(15)),
             const SizedBox(height: 10),
             Text('Location:', style: appFontStyle(15, texColorDark, FontWeight.bold)),
             Text('Sub District: ${data['sub_district'] ?? 'N/A'}', style: appFontStyle(15)),
             Text('District: ${data['district'] ?? 'N/A'}', style: appFontStyle(15)),
+            const SizedBox(height: 10),
+            Text('Applicants: $applicantCount', style: appFontStyle(15)),
             Divider(),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-
                 children: [
                   ElevatedButton(
                     onPressed: () {
@@ -188,7 +211,6 @@ class _PostedEventsState extends State<PostedEvents> {
                     child: const Text("Delete"),
                   ),
                   ElevatedButton(
-
                     onPressed: () {
                       Navigator.push(
                         context,

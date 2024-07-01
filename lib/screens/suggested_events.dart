@@ -136,7 +136,10 @@ class _SugestedEventsState extends State<SugestedEvents> {
       setState(() {
 
       });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to send notification for the event: $e')));
+      setState(() {
+
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Successfully applied for the event')));
     }
   }
 
