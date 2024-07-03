@@ -47,23 +47,8 @@ class _UserStoriesScreenState extends State<UserStoriesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: AppDrawer(),
-      appBar: AppBar(
-        title: Text('My Stories', style: appFontStyle(25, texColorLight)),
-        centerTitle: true,
-        actions: [
-          IconButton(onPressed: (){
-            Navigator.push(context, MaterialPageRoute(builder: (context) => StoryPost(),));
-          }, icon: Icon(Icons.web_stories)),
-          IconButton(
-            onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => ManageMessagesPage()));
-            },
-            icon: Icon(Icons.message),
-          ),
-        ],
-      ),
+
+
       body: StreamBuilder<List<DocumentSnapshot>>(
         stream: _fetchUserStories(),
         builder: (context, snapshot) {
@@ -81,6 +66,8 @@ class _UserStoriesScreenState extends State<UserStoriesScreen> {
           }
 
           return ListView.builder(
+            shrinkWrap: true,
+
             itemCount: stories.length,
             itemBuilder: (context, index) {
               DocumentSnapshot document = stories[index];
@@ -99,7 +86,7 @@ class _UserStoriesScreenState extends State<UserStoriesScreen> {
                       ),
                       SizedBox(height: 10),
                       if (data['image_url'] != null)
-                        Image.network(data['image_url']),
+                        Image.network(data['image_url'],height: 240,width:double.infinity,fit: BoxFit.fill,),
                       SizedBox(height: 10),
                       Text(
                         data['content'] ?? 'No Content',
@@ -111,7 +98,7 @@ class _UserStoriesScreenState extends State<UserStoriesScreen> {
                         style: appFontStyle(12, Colors.grey),
                       ),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           IconButton(
                             icon: Icon(Icons.edit),
@@ -161,6 +148,12 @@ class _UserStoriesScreenState extends State<UserStoriesScreen> {
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: (){
+          Navigator.push(context, MaterialPageRoute(builder: (context) => StoryPost(),));
+        },
+        child: Icon(Icons.add),
       ),
     );
   }

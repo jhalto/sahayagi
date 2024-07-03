@@ -110,6 +110,15 @@ class _EventPostState extends State<EventPost> {
               'New Event Suggested!',
               'A new event matching your skills.'
           );
+
+          // Save notification to Firestore
+          await FirebaseFirestore.instance.collection('notifications').add({
+            'user_id': doc.id,
+            'title': 'New Event Suggested!',
+            'body': 'A new event matching your skills.',
+            'timestamp': FieldValue.serverTimestamp(),
+            'event_id': eventId,
+          });
         }
       }
     }

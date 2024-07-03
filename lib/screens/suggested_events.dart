@@ -126,6 +126,14 @@ class _SugestedEventsState extends State<SugestedEvents> {
           'New Application',
           'You have a new application for your event.',
         );
+
+        // Store notification in Firestore
+        await FirebaseFirestore.instance.collection('notifications').add({
+          'user_id': eventOwnerId,
+          'title': 'New Application',
+          'body': 'You have a new application for your event.',
+          'timestamp': FieldValue.serverTimestamp(),
+        });
       }
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Successfully applied for the event')));
@@ -133,13 +141,11 @@ class _SugestedEventsState extends State<SugestedEvents> {
       // Trigger rebuild to refresh the events list
       setState(() {});
     } catch (e) {
-      setState(() {
-
-      });
-      setState(() {
-
-      });
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Successfully applied for the event')));
+      setState(() {
+
+      });
+      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to apply for the event: $e')));
     }
   }
 

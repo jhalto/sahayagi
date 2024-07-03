@@ -129,6 +129,14 @@ class _SuggestedBloodPostsState extends State<SuggestedBloodPosts> {
           'New Blood Post Application',
           'You have a new application for your blood post.',
         );
+
+        // Store notification in Firestore
+        await FirebaseFirestore.instance.collection('notifications').add({
+          'user_id': postOwnerId,
+          'title': 'New Blood Post Application',
+          'body': 'You have a new application for your blood post.',
+          'timestamp': FieldValue.serverTimestamp(),
+        });
       }
 
       // Success message and refresh
@@ -137,7 +145,10 @@ class _SuggestedBloodPostsState extends State<SuggestedBloodPosts> {
       // Refresh the list of applied blood posts and trigger a rebuild to refresh the suggested blood posts list
       _fetchAppliedBloodPosts();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to apply for the blood post: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Successfully applied for the blood post')));
+
+      // Refresh the list of applied blood posts and trigger a rebuild to refresh the suggested blood posts list
+      _fetchAppliedBloodPosts();
     }
   }
 

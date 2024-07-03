@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sahayagi/widget/common_widget.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 import '../helpers/notification_helper.dart';
 import '../models/location_model.dart';
@@ -17,7 +19,6 @@ class BloodPost extends StatefulWidget {
 }
 
 class _BloodPostState extends State<BloodPost> {
-
   final TextEditingController _hospitalController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _bloodQuantityController = TextEditingController();
@@ -33,6 +34,8 @@ class _BloodPostState extends State<BloodPost> {
   bool _isLoading = false;
   final _formKey = GlobalKey<FormState>();
 
+  File? _selectedImage;
+
   Future<void> addBloodNeedingInfo() async {
     if (_hospitalController.text.isEmpty ||
         _descriptionController.text.isEmpty ||
@@ -43,9 +46,10 @@ class _BloodPostState extends State<BloodPost> {
         _selectedSubDistrict == null ||
         _selectedDistrict == null ||
         _operationDate == null ||
-        _lastApplicationDate == null) {
+        _lastApplicationDate == null ||
+        _selectedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Please fill in all the fields')));
+          SnackBar(content: Text('Please fill in all the fields and select an image')));
       return;
     }
 
@@ -71,6 +75,9 @@ class _BloodPostState extends State<BloodPost> {
 
       String? userName = userDoc['name'];
 
+      // Upload image to Firebase Storage
+      String imageUrl = await uploadImageToStorage(_selectedImage!);
+
       CollectionReference bloodDonation =
       FirebaseFirestore.instance.collection('blood_donation');
       DocumentReference documentReference = await bloodDonation.add({
@@ -86,6 +93,7 @@ class _BloodPostState extends State<BloodPost> {
         'user_name': userName,
         'operation_date': _operationDate,
         'last_application_date': _lastApplicationDate,
+        'image_url': imageUrl,
         'timestamp': FieldValue.serverTimestamp(),
       });
 
@@ -104,6 +112,12 @@ class _BloodPostState extends State<BloodPost> {
         _isLoading = false;
       });
     }
+  }
+
+  Future<String> uploadImageToStorage(File image) async {
+    // Implement your image upload logic to Firebase Storage here
+    // Return the URL of the uploaded image
+    return 'https://example.com/uploaded_image.jpg';
   }
 
   Future<void> _sendNotificationToMatchingUsers(String postId) async {
@@ -125,6 +139,15 @@ class _BloodPostState extends State<BloodPost> {
               'New Blood Post Suggested!',
               'A new blood donation request matching your blood group and district has been posted.'
           );
+
+          // Save notification to Firestore
+          await FirebaseFirestore.instance.collection('notifications').add({
+            'user_id': doc.id,
+            'title': 'New Blood Post Suggested!',
+            'body': 'A new blood donation request matching your blood group has been posted.',
+            'timestamp': FieldValue.serverTimestamp(),
+            'post_id': postId,
+          });
         }
       }
     }
@@ -144,6 +167,7 @@ class _BloodPostState extends State<BloodPost> {
       _selectedBloodGroup = null;
       _selectedSubDistrict = null;
       _selectedDistrict = null;
+      _selectedImage = null;
     });
   }
 
@@ -158,6 +182,49 @@ class _BloodPostState extends State<BloodPost> {
     if (picked != null) {
       onDateSelected(picked);
     }
+  }
+
+  // Pick an image
+  Future<void> _pickImage() async {
+    final ImagePicker _picker = ImagePicker();
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: Icon(Icons.photo_library),
+                title: Text('Pick from Gallery'),
+                onTap: () async {
+                  final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+                  if (pickedFile != null) {
+                    setState(() {
+                      _selectedImage = File(pickedFile.path);
+                    });
+                  }
+                  Navigator.of(context).pop();
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.photo_camera),
+                title: Text('Take a Picture'),
+                onTap: () async {
+                  final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera);
+                  if (pickedFile != null) {
+                    setState(() {
+                      _selectedImage = File(pickedFile.path);
+                    });
+                  }
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -180,12 +247,10 @@ class _BloodPostState extends State<BloodPost> {
                   controller: _hospitalController,
                   decoration: InputDecoration(
                     hintText: 'Enter Hospital Name',
-                    hintStyle: TextStyle(color: Colors.white),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  style: TextStyle(color: Colors.white), // Set the text color to white
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please Enter hospital';
@@ -198,12 +263,10 @@ class _BloodPostState extends State<BloodPost> {
                   controller: _descriptionController,
                   decoration: InputDecoration(
                     hintText: 'Enter Description',
-                    hintStyle: TextStyle(color: Colors.white),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  style: TextStyle(color: Colors.white),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter Description';
@@ -216,12 +279,10 @@ class _BloodPostState extends State<BloodPost> {
                   controller: _bloodQuantityController,
                   decoration: InputDecoration(
                     hintText: 'Enter Quantity',
-                    hintStyle: TextStyle(color: Colors.white),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  style: TextStyle(color: Colors.white),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter Quantity';
@@ -234,12 +295,10 @@ class _BloodPostState extends State<BloodPost> {
                   controller: _phoneController,
                   decoration: InputDecoration(
                     hintText: 'Enter phone number',
-                    hintStyle: TextStyle(color: Colors.white),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  style: TextStyle(color: Colors.white),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter phone number';
@@ -247,16 +306,15 @@ class _BloodPostState extends State<BloodPost> {
                     return null;
                   },
                 ),
+                SizedBox(height: 10,),
                 TextFormField(
                   controller: _locationDetailController,
                   decoration: InputDecoration(
                     hintText: 'Enter Location Details',
-                    hintStyle: TextStyle(color: Colors.white),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  style: TextStyle(color: Colors.white),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter location';
@@ -271,12 +329,10 @@ class _BloodPostState extends State<BloodPost> {
                   dropdownDecoratorProps: DropDownDecoratorProps(
                     dropdownSearchDecoration: InputDecoration(
                       hintText: "Please Select Blood Group",
-                      hintStyle: TextStyle(color: Colors.white),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    baseStyle: TextStyle(color: Colors.white),
                   ),
                   popupProps: PopupProps.menu(
                     showSearchBox: true,
@@ -298,28 +354,21 @@ class _BloodPostState extends State<BloodPost> {
                   items: subDistricts,
                   selectedItem: _selectedSubDistrict,
                   dropdownDecoratorProps: DropDownDecoratorProps(
-
                     dropdownSearchDecoration: InputDecoration(
-
                       hintText: "Please Select Sub-District",
-                      hintStyle: TextStyle(color: Colors.white),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    baseStyle: TextStyle(color: Colors.white),
                   ),
-
                   popupProps: PopupProps.menu(
                     showSearchBox: true,
-
                   ),
                   onChanged: (String? newValue) {
                     setState(() {
                       _selectedSubDistrict = newValue;
                     });
                   },
-
                   validator: (value) {
                     if (value == null) {
                       return 'Please select a Sub-District';
@@ -334,12 +383,10 @@ class _BloodPostState extends State<BloodPost> {
                   dropdownDecoratorProps: DropDownDecoratorProps(
                     dropdownSearchDecoration: InputDecoration(
                       hintText: "Please Select District",
-                      hintStyle: TextStyle(color: Colors.white),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    baseStyle: TextStyle(color: Colors.white), // Set the selected text color to white
                   ),
                   popupProps: PopupProps.menu(
                     showSearchBox: true,
@@ -352,7 +399,6 @@ class _BloodPostState extends State<BloodPost> {
                   dropdownBuilder: (context, selectedItem) {
                     return Text(
                       selectedItem ?? "Please Select District",
-                      style: TextStyle(color: Colors.white),
                     );
                   },
                   validator: (value) {
@@ -374,7 +420,7 @@ class _BloodPostState extends State<BloodPost> {
                         }),
                         child: Text(_operationDate == null
                             ? 'Select operation date'
-                            : DateFormat.yMd().format(_operationDate!),style: TextStyle(color: Colors.white),),
+                            : DateFormat.yMd().format(_operationDate!),),
                       ),
                     ),
                     Expanded(
@@ -387,10 +433,20 @@ class _BloodPostState extends State<BloodPost> {
                         child: Text(_lastApplicationDate == null
                             ? 'Select Last Application Date'
                             : DateFormat.yMd()
-                            .format(_lastApplicationDate!),style: TextStyle(color: Colors.white),),
+                            .format(_lastApplicationDate!),),
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 10),
+                _selectedImage != null
+                    ? Image.file(
+                  _selectedImage!,
+                  height: 150,
+                )
+                    : TextButton(
+                  onPressed: _pickImage,
+                  child: Text('Select Patient Photo'),
                 ),
                 const SizedBox(height: 50),
                 ElevatedButton(

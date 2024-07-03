@@ -17,6 +17,27 @@ texStyle([Color?color,FontWeight?fw,FontStyle?fs]){
     fontWeight: fw,
     fontStyle: fs,
   );
+
+}
+textBlackBold(double size){
+  return GoogleFonts.montserrat(
+    fontSize: size,
+    color: Colors.black,
+    fontWeight: FontWeight.bold,
+
+  );
+}
+textBlack(){
+  return GoogleFonts.montserrat(
+    fontSize: 16,
+    color: Colors.black,
+  );
+}
+textWhite(){
+  return GoogleFonts.montserrat(
+    fontSize: 16,
+    color: Colors.white,
+  );
 }
 const Color appColorLight=Color(0xff216FD5);
 const Color appColorDark=Color(0xff000000);

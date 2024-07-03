@@ -4,11 +4,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sahayagi/screens/manage_friends.dart';
 import 'package:sahayagi/screens/update_profile.dart';
-import 'package:sahayagi/screens/change_password.dart';  // Import the new screen
+import 'package:sahayagi/screens/change_password.dart';
 
 import '../helpers/helper.dart';
 import '../widget/common_widget.dart';
-import 'message_list_page.dart';
 import 'search_friend.dart';
 import 'manage_friend_request_page.dart';
 
@@ -24,17 +23,33 @@ class _AppDrawerState extends State<AppDrawer> {
 
   @override
   Widget build(BuildContext context) {
+    if (user == null) {
+      return const Drawer(
+        child: Center(
+          child: Text('User not signed in', style: TextStyle(color: Colors.white)),
+        ),
+      );
+    }
+
     return Drawer(
-      backgroundColor: appColorDark,
+      backgroundColor: Colors.black12,
       child: ListView(
         children: [
           StreamBuilder<DocumentSnapshot>(
             stream: FirebaseFirestore.instance.collection('users').doc(user!.uid).snapshots(),
             builder: (context, snapshot) {
-              if (!snapshot.hasData) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
                 return const CircularProgressIndicator();
               }
-              var userData = snapshot.data!.data() as Map<String, dynamic>;
+
+              if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
+                return const Text('No user data available', style: TextStyle(color: Colors.white));
+              }
+
+              var userData = snapshot.data!.data() as Map<String, dynamic>?;
+              if (userData == null) {
+                return const Text('User data is empty', style: TextStyle(color: Colors.white));
+              }
 
               return DrawerHeader(
                 decoration: const BoxDecoration(
@@ -67,10 +82,18 @@ class _AppDrawerState extends State<AppDrawer> {
           StreamBuilder<DocumentSnapshot>(
             stream: FirebaseFirestore.instance.collection('users').doc(user!.uid).snapshots(),
             builder: (context, snapshot) {
-              if (!snapshot.hasData) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
                 return const CircularProgressIndicator();
               }
-              var userData = snapshot.data!.data() as Map<String, dynamic>;
+
+              if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
+                return const Text('No user data available', style: TextStyle(color: Colors.white));
+              }
+
+              var userData = snapshot.data!.data() as Map<String, dynamic>?;
+              if (userData == null) {
+                return const Text('User data is empty', style: TextStyle(color: Colors.white));
+              }
 
               return Column(
                 children: [
@@ -91,7 +114,7 @@ class _AppDrawerState extends State<AppDrawer> {
             },
           ),
           ListTile(
-            title: Text('Search Friend',style: TextStyle(color: texColorLight),),
+            title: Text('Search Friend', style: TextStyle(color: texColorLight)),
             onTap: () {
               Navigator.push(
                 context,
@@ -100,7 +123,7 @@ class _AppDrawerState extends State<AppDrawer> {
             },
           ),
           ListTile(
-            title: Text('Manage Friend Requests',style: TextStyle(color: Colors.white),),
+            title: Text('Manage Friend Requests', style: TextStyle(color: Colors.white)),
             onTap: () {
               Navigator.push(
                 context,
@@ -109,8 +132,8 @@ class _AppDrawerState extends State<AppDrawer> {
             },
           ),
           ListTile(
-            leading: Icon(Icons.people,color: texColorLight,),
-            title: Text('Friend List',style: TextStyle(color: Colors.white),),
+            leading: Icon(Icons.people, color: texColorLight),
+            title: Text('Friend List', style: TextStyle(color: Colors.white)),
             onTap: () {
               Navigator.push(
                 context,
@@ -120,7 +143,6 @@ class _AppDrawerState extends State<AppDrawer> {
               );
             },
           ),
-
           Padding(
             padding: const EdgeInsets.only(left: 40, right: 40, bottom: 20, top: 20),
             child: ElevatedButton(

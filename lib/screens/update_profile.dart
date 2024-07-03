@@ -20,6 +20,7 @@ class UpdateUserProfile extends StatefulWidget {
 
 class _UpdateUserProfileState extends State<UpdateUserProfile> {
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _bioController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
   List<String> _selectedSkills = [];
@@ -29,6 +30,8 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
 
   File? _image;
   String? _imageUrl;
+  File? _coverImage;
+  String? _coverImageUrl;
   final picker = ImagePicker();
 
   @override
@@ -41,19 +44,25 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
     try {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
         if (userDoc.exists) {
           Map<String, dynamic>? data = userDoc.data() as Map<String, dynamic>?;
           if (data != null) {
             setState(() {
               _nameController.text = data['name'] ?? '';
+              _bioController.text = data['bio'] ?? '';
               _phoneController.text = data['phone'] ?? '';
               _ageController.text = data['age'] ?? '';
               _selectedSkills = List<String>.from(data['skills'] ?? []);
               _selectedBloodGroup = data['blood_group'] ?? '';
               _selectedSubDistrict = data['sub_district'] ?? '';
               _selectedDistrict = data['district'] ?? '';
-              _imageUrl = data['imageUrl'] ?? '';
+              _imageUrl = data['photoUrl'] ?? '';
+              _coverImageUrl =
+                  data['coverPhotoUrl'] ?? ''; // Load cover photo URL
             });
           }
         }
@@ -74,9 +83,16 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
           imageUrl = await uploadImageToFirebaseStorage(_image!);
         }
 
+        // Upload cover image to Firebase Storage if an image is selected
+        String? coverImageUrl;
+        if (_coverImage != null) {
+          coverImageUrl = await uploadImageToFirebaseStorage(_coverImage!);
+        }
+
         // Update user profile data in Firestore
         var updateData = {
           'name': _nameController.text,
+          'bio': _bioController.text,
           'phone': _phoneController.text,
           'age': _ageController.text,
           'skills': _selectedSkills,
@@ -87,13 +103,21 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
 
         // Only add imageUrl if an image was uploaded
         if (imageUrl != null) {
-          updateData['imageUrl'] = imageUrl;
+          updateData['photoUrl'] = imageUrl;
         }
 
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).update(updateData);
+        // Only add coverImageUrl if a cover image was uploaded
+        if (coverImageUrl != null) {
+          updateData['coverPhotoUrl'] = coverImageUrl;
+        }
 
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('User updated successfully')));
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .update(updateData);
+
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('User updated successfully')));
         Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -105,12 +129,16 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
     }
   }
 
-  Future<void> _getImage(ImageSource source) async {
+  Future<void> _getImage(ImageSource source, bool isCoverImage) async {
     final pickedFile = await picker.pickImage(source: source);
 
     setState(() {
       if (pickedFile != null) {
-        _image = File(pickedFile.path);
+        if (isCoverImage) {
+          _coverImage = File(pickedFile.path);
+        } else {
+          _image = File(pickedFile.path);
+        }
       } else {
         print('No image selected.');
       }
@@ -143,31 +171,70 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
           child: Column(
             children: [
               SizedBox(height: 30),
-              _image != null
-                  ? CircleAvatar(
-                radius: 50,
-                backgroundImage: FileImage(_image!),
-              )
-                  : _imageUrl != null && _imageUrl!.isNotEmpty
-                  ? CircleAvatar(
-                radius: 50,
-                backgroundImage: NetworkImage(_imageUrl!),
-              )
-                  : CircleAvatar(
-                radius: 50,
-                child: Icon(Icons.person),
-              ),
+              // Display cover photo
+              _coverImage != null
+                  ? Image.file(
+                      _coverImage!,
+                      width: double.infinity,
+                      height: 200,
+                      fit: BoxFit.cover,
+                    )
+                  : _coverImageUrl != null && _coverImageUrl!.isNotEmpty
+                      ? Image.network(
+                          _coverImageUrl!,
+                          width: double.infinity,
+                          height: 200,
+                          fit: BoxFit.cover,
+                        )
+                      : Container(
+                          width: double.infinity,
+                          height: 200,
+                          color: Colors.grey[300],
+                          child: Icon(Icons.photo,
+                              size: 100, color: Colors.grey[600]),
+                        ),
               SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(
-                    onPressed: () => _getImage(ImageSource.gallery),
+                    onPressed: () => _getImage(ImageSource.gallery, true),
+                    child: Text('Choose Cover Photo'),
+                  ),
+                  SizedBox(width: 10),
+                  ElevatedButton(
+                    onPressed: () => _getImage(ImageSource.camera, true),
+                    child: Text('Take Cover Photo'),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              // Display profile photo
+              _image != null
+                  ? CircleAvatar(
+                      radius: 50,
+                      backgroundImage: FileImage(_image!),
+                    )
+                  : _imageUrl != null && _imageUrl!.isNotEmpty
+                      ? CircleAvatar(
+                          radius: 50,
+                          backgroundImage: NetworkImage(_imageUrl!),
+                        )
+                      : CircleAvatar(
+                          radius: 50,
+                          child: Icon(Icons.person),
+                        ),
+              SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => _getImage(ImageSource.gallery, false),
                     child: Text('Choose Image'),
                   ),
                   SizedBox(width: 10),
                   ElevatedButton(
-                    onPressed: () => _getImage(ImageSource.camera),
+                    onPressed: () => _getImage(ImageSource.camera, false),
                     child: Text('Take Photo'),
                   ),
                 ],
@@ -177,7 +244,16 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
                 controller: _nameController,
                 decoration: InputDecoration(
                   hintText: 'Enter Name',
-                  hintStyle: TextStyle(color: Colors.white),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
+              TextField(
+                controller: _bioController,
+                decoration: InputDecoration(
+                  hintText: 'Enter Bio',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -188,7 +264,6 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
                 controller: _phoneController,
                 decoration: InputDecoration(
                   hintText: 'Enter Phone Number',
-                  hintStyle: TextStyle(color: Colors.white),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -199,7 +274,6 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
                 controller: _ageController,
                 decoration: InputDecoration(
                   hintText: 'Enter Age',
-                  hintStyle: TextStyle(color: Colors.white),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -207,26 +281,25 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
               ),
               SizedBox(height: 10),
               MultiSelectDialogField<String>(
-                items: skills.map((skill) => MultiSelectItem<String>(skill, skill)).toList(),
+                items: skills
+                    .map((skill) => MultiSelectItem<String>(skill, skill))
+                    .toList(),
                 title: Text("Skills"),
-                searchable: true,  // Enable search
+                searchable: true,
+                // Enable search
                 selectedColor: Colors.black,
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: Colors.grey,
+                    color: Colors.black,
                   ),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 buttonIcon: Icon(
                   Icons.arrow_drop_down,
-                  color: Colors.white,
+
                 ),
                 buttonText: Text(
                   "Select Skills",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                  ),
                 ),
                 onConfirm: (List<String> selectedValues) {
                   setState(() {
@@ -240,15 +313,13 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
                 items: bloodGroups,
                 selectedItem: _selectedBloodGroup,
                 dropdownDecoratorProps: DropDownDecoratorProps(
-                  dropdownSearchDecoration: InputDecoration(
-                    hintText: "Please Select Blood Group",
-                    hintStyle: TextStyle(color: Colors.white),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
+                    dropdownSearchDecoration: InputDecoration(
+                      hintText: "Please Select Blood Group",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
-                  baseStyle: TextStyle(color: Colors.white)
-                ),
                 popupProps: PopupProps.menu(
                   showSearchBox: true,
                 ),
@@ -271,12 +342,12 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
                 dropdownDecoratorProps: DropDownDecoratorProps(
                   dropdownSearchDecoration: InputDecoration(
                     hintText: "Please Select Sub-District",
-                    hintStyle: TextStyle(color: Colors.white),
+
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  baseStyle: TextStyle(color: Colors.white),
+
                 ),
                 popupProps: PopupProps.menu(
                   showSearchBox: true,
@@ -300,12 +371,10 @@ class _UpdateUserProfileState extends State<UpdateUserProfile> {
                 dropdownDecoratorProps: DropDownDecoratorProps(
                   dropdownSearchDecoration: InputDecoration(
                     hintText: "Please Select District",
-                    hintStyle: TextStyle(color: Colors.white),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                 baseStyle: TextStyle(color: Colors.white),
                 ),
                 popupProps: PopupProps.menu(
                   showSearchBox: true,

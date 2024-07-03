@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:sahayagi/screens/notification_screen.dart';
+import 'package:sahayagi/widget/common_widget.dart';
 
 class NotificationServices {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -21,6 +22,7 @@ class NotificationServices {
       criticalAlert: true,
       provisional: true,
       sound: true,
+
     );
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       print("User granted permission");

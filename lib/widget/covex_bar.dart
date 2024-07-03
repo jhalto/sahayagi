@@ -8,11 +8,12 @@ import 'package:sahayagi/helpers/notification_services.dart';
 import 'package:sahayagi/screens/all_user.dart';
 import 'package:sahayagi/screens/blood_post.dart';
 import 'package:sahayagi/screens/edit_posted_events.dart';
+import 'package:sahayagi/screens/notification_page.dart';
 import 'package:sahayagi/screens/posted_blood_post.dart';
 import 'package:sahayagi/screens/suggested_blood_donation_post.dart';
 import 'package:sahayagi/screens/suggested_events.dart';
 import 'package:sahayagi/screens/posted_events.dart';
-import 'package:sahayagi/screens/profile.dart';
+import 'package:sahayagi/screens/user_profile.dart';
 import 'package:sahayagi/screens/user_story.dart';
 import 'package:sahayagi/widget/common_widget.dart';
 import '../screens/applied_events.dart';
@@ -31,7 +32,7 @@ class _ConvexBarDemoState extends State<ConvexBarDemo> {
   NotificationServices notificationServices = NotificationServices();
 
 
-  List<Widget> pages = [HomePage(),UserStoriesScreen(),const SugestedEvents(),const PostedEvents(),PostedBloodPost(),SuggestedBloodPosts()];
+  List<Widget> pages = [HomePage(),UserStoriesScreen(),const SugestedEvents(),const PostedEvents(),PostedBloodPost(),SuggestedBloodPosts(),NotificationsPage()];
   int index =0;
   @override
   void initState() {
@@ -56,7 +57,7 @@ class _ConvexBarDemoState extends State<ConvexBarDemo> {
 
 
       bottomNavigationBar: ConvexAppBar(
-          top: -7,
+          top: -8,
 
 
 
@@ -81,6 +82,7 @@ class _ConvexBarDemoState extends State<ConvexBarDemo> {
             TabItem(icon: Icon(Icons.event_note_sharp,color: texColorLight)),
             TabItem(icon: Icon(Icons.post_add,color: texColorLight)),
             TabItem(icon: Icon(Icons.bloodtype,color: texColorLight)),
+            TabItem(icon: Icon(Icons.notification_add,color: texColorLight)),
 
           ]),
 

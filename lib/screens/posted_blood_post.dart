@@ -51,26 +51,7 @@ class _PostedBloodPostState extends State<PostedBloodPost> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(),
-      appBar: AppBar(
-        title: Text("Posted Blood Posts", style: appFontStyle(25, texColorLight)),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => BloodPost(),));
-            },
-            icon: const Icon(Icons.add_box_rounded),
-          ),
-          IconButton(
-            onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => ManageMessagesPage()));
-            },
-            icon: Icon(Icons.message),
-          ),
-        ],
-      ),
+
       body: FutureBuilder<void>(
         future: _fetchUserBloodPost,
         builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
@@ -113,7 +94,14 @@ class _PostedBloodPostState extends State<PostedBloodPost> {
           );
         },
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: (){
+          Navigator.push(context, MaterialPageRoute(builder: (context) => BloodPost(),));
+        },
+        child: Icon(Icons.add),
+      ),
     );
+
   }
 
   Widget _buildPostCard(BuildContext context, Map<String, dynamic> data, String documentId) {
@@ -142,6 +130,7 @@ class _PostedBloodPostState extends State<PostedBloodPost> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ElevatedButton(
                     onPressed: () {

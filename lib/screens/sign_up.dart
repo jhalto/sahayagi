@@ -21,18 +21,11 @@ class _SignUpState extends State<SignUp> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
 
-
   final _formKey = GlobalKey<FormState>();
-
-  // List of skills to be displayed in the dropdown
 
   String? _selectedBloodGroup;
   String? _selectedSubDistrict;
   String? _selectedDistrict;
-
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +111,7 @@ class _SignUpState extends State<SignUp> {
                             return null;
                           },
                         ),
-                        SizedBox(width: 10,),
+                        const SizedBox(height: 10),
                         TextFormField(
                           controller: _ageController,
                           keyboardType: TextInputType.phone,
@@ -130,14 +123,12 @@ class _SignUpState extends State<SignUp> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please enter Age';
+                              return 'Please enter age';
                             }
                             return null;
                           },
                         ),
-
                         const SizedBox(height: 10),
-
                         DropdownSearch<String>(
                           items: bloodGroups,
                           selectedItem: _selectedBloodGroup,
@@ -159,13 +150,11 @@ class _SignUpState extends State<SignUp> {
                           },
                           validator: (value) {
                             if (value == null) {
-                              return 'Please select a blood Group';
+                              return 'Please select a blood group';
                             }
                             return null;
                           },
                         ),
-
-
                         const SizedBox(height: 10),
                         DropdownSearch<String>(
                           items: subDistricts,
@@ -188,14 +177,13 @@ class _SignUpState extends State<SignUp> {
                           },
                           validator: (value) {
                             if (value == null) {
-                              return 'Please select a Sub-District';
+                              return 'Please select a sub-district';
                             }
                             return null;
                           },
                         ),
                         const SizedBox(height: 10),
                         DropdownSearch<String>(
-
                           items: districts,
                           selectedItem: _selectedDistrict,
                           dropdownDecoratorProps: DropDownDecoratorProps(
@@ -216,7 +204,7 @@ class _SignUpState extends State<SignUp> {
                           },
                           validator: (value) {
                             if (value == null) {
-                              return 'Please select District';
+                              return 'Please select a district';
                             }
                             return null;
                           },
@@ -234,13 +222,11 @@ class _SignUpState extends State<SignUp> {
                       var name = _nameController.text;
                       var phone = _phoneController.text;
                       var age = _ageController.text;
+                      var bloodGroup = _selectedBloodGroup!;
+                      var subDistrict = _selectedSubDistrict!;
+                      var district = _selectedDistrict!;
 
-                      var bloodGroup = _selectedBloodGroup;
-
-                      var subDistrict = _selectedSubDistrict;
-                      var district = _selectedDistrict;
-
-                      MyHelper().signUp(email, password, name, phone,age, bloodGroup!, subDistrict!, district!, context);
+                      MyHelper().signUp(email, password, name, phone, age, bloodGroup, subDistrict, district, context);
                     }
                   },
                   child: const Text("Sign Up"),

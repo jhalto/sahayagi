@@ -28,28 +28,36 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
       DocumentReference targetUserRef = FirebaseFirestore.instance.collection('users').doc(targetUserId);
 
       DocumentSnapshot targetUserDoc = await targetUserRef.get();
-      List<dynamic> friendRequests = targetUserDoc['friendRequests'] ?? [];
+      if (targetUserDoc.exists) {
+        Map<String, dynamic>? targetUserData = targetUserDoc.data() as Map<String, dynamic>?;
 
-      if (friendRequests.contains(currentUser.uid)) {
-        // Cancel friend request
-        await targetUserRef.update({
-          'friendRequests': FieldValue.arrayRemove([currentUser.uid])
-        });
-      } else {
-        // Send friend request
-        await targetUserRef.update({
-          'friendRequests': FieldValue.arrayUnion([currentUser.uid])
-        });
+        if (targetUserData != null) {
+          List<dynamic> friendRequests = targetUserData.containsKey('friendRequests')
+              ? targetUserData['friendRequests']
+              : [];
 
-        // Send notification
-        if (targetUserDoc.exists && targetUserDoc['device_token'] != null) {
-          String token = targetUserDoc['device_token'];
-          String senderName = currentUser.displayName ?? 'Someone';
-          await _notificationHelper.sendPushNotification(
-            token,
-            'New Friend Request',
-            '$senderName has sent you a friend request',
-          );
+          if (friendRequests.contains(currentUser.uid)) {
+            // Cancel friend request
+            await targetUserRef.update({
+              'friendRequests': FieldValue.arrayRemove([currentUser.uid])
+            });
+          } else {
+            // Send friend request
+            await targetUserRef.update({
+              'friendRequests': FieldValue.arrayUnion([currentUser.uid])
+            });
+
+            // Send notification
+            if (targetUserData.containsKey('device_token') && targetUserData['device_token'] != null) {
+              String token = targetUserData['device_token'];
+              String senderName = currentUser.displayName ?? 'Someone';
+              await _notificationHelper.sendPushNotification(
+                token,
+                'New Friend Request',
+                '$senderName has sent you a friend request',
+              );
+            }
+          }
         }
       }
     }
@@ -120,16 +128,15 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                       ? NetworkImage(userData['profilePic'])
                       : AssetImage('lib/images/default_user_image.jpg') as ImageProvider,
                 ),
-                title: Text(userData['name'] ?? 'Unknown',style: texStyle(),),
-                // subtitle: Text(userData['email'] ?? 'Unknown',style: texStyle(),),
+                title: Text(userData['name'] ?? 'Unknown', style: texStyle()),
                 trailing: isFriend
-                    ? Text('Friend',style: texStyle(),)
+                    ? Text('Friend', style: texStyle())
                     : isRequested
                     ? ElevatedButton(
                   onPressed: () {
                     sendFriendRequest(userDoc.id);
                   },
-                  child: Text('Cancel Request',),
+                  child: Text('Cancel Request'),
                 )
                     : ElevatedButton(
                   onPressed: () {

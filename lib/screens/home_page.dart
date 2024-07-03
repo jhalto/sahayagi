@@ -1,13 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sahayagi/screens/manage_message.dart';
-import 'package:sahayagi/screens/message_list_page.dart';
 import 'package:sahayagi/screens/post_option.dart';
+import 'package:sahayagi/screens/user_profile.dart';
 import 'package:share/share.dart';
-
 import '../widget/common_widget.dart';
-import 'app_drawer.dart';
-import 'chat_screen.dart';
 import 'comment_screen.dart';
 
 class HomePage extends StatefulWidget {
@@ -30,7 +28,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _commentOnPost(DocumentSnapshot document) {
-    // Navigate to the comment screen (you need to create this screen)
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -43,11 +40,42 @@ class _HomePageState extends State<HomePage> {
     Share.share('$title\n\n$content');
   }
 
+  User? user = FirebaseAuth.instance.currentUser;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: AppDrawer(),
+      // drawer: AppDrawer(),
       appBar: AppBar(
+        leading: StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance.collection('users').doc(user!.uid).snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const CircularProgressIndicator();
+            }
+
+            if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
+              return const Text('No user data available', style: TextStyle(color: Colors.white));
+            }
+
+            var userData = snapshot.data!.data() as Map<String, dynamic>?;
+            if (userData == null) {
+              return const Text('User data is empty', style: TextStyle(color: Colors.white));
+            }
+
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => UserProfileDetail()));
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8, bottom: 8, left: 8, right: 8),
+                child: CircleAvatar(
+                  backgroundImage: NetworkImage(userData['photoUrl'] ?? ''),
+                ),
+              ),
+            );
+          },
+        ),
         toolbarHeight: 65,
         centerTitle: true,
         title: Column(
@@ -58,23 +86,20 @@ class _HomePageState extends State<HomePage> {
             ),
             Text(
               "Volunteer BD",
-              style: appFontStyle(
-                  15, texColorLight, FontWeight.w500, FontStyle.italic),
+              style: appFontStyle(15, texColorLight, FontWeight.w500, FontStyle.italic),
             )
           ],
         ),
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => PostOption()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => PostOption()));
             },
             icon: Icon(Icons.add_card_outlined),
           ),
           IconButton(
             onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => ManageMessagesPage()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => ManageMessagesPage()));
             },
             icon: Icon(Icons.message),
           ),
@@ -84,8 +109,7 @@ class _HomePageState extends State<HomePage> {
         stream: _storyStream,
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) {
-            return Center(
-                child: Text('Something went wrong: ${snapshot.error}'));
+            return Center(child: Text('Something went wrong: ${snapshot.error}'));
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -99,8 +123,7 @@ class _HomePageState extends State<HomePage> {
           return ListView(
             padding: EdgeInsets.all(8.0),
             children: snapshot.data!.docs.map((DocumentSnapshot document) {
-              Map<String, dynamic> data =
-              document.data()! as Map<String, dynamic>;
+              Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
               return Container(
                 child: Card(
                   margin: EdgeInsets.symmetric(vertical: 8.0),
@@ -114,14 +137,10 @@ class _HomePageState extends State<HomePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Posted by: ${data['user_name'] ?? 'Unknown'}',
-                            style: appFontStyle(
-                                15, Colors.black, FontWeight.w600
-                            )),
+                            style: appFontStyle(15, Colors.black, FontWeight.w600)),
                         SizedBox(height: 10),
                         Text(data['title'] ?? 'No Title',
-                            style: appFontStyle(
-                                20, Colors.black, FontWeight.bold
-                            )),
+                            style: appFontStyle(20, Colors.black, FontWeight.bold)),
                         SizedBox(height: 10),
                         if (data['image_url'] != null)
                           ClipRRect(
@@ -129,8 +148,7 @@ class _HomePageState extends State<HomePage> {
                             child: Image.network(data['image_url']),
                           ),
                         SizedBox(height: 10),
-                        Text(data['content'] ?? 'No Content',
-                            style: appFontStyle(15)),
+                        Text(data['content'] ?? 'No Content', style: appFontStyle(15)),
                         SizedBox(height: 10),
                         Text(
                           'Posted on: ${data['timestamp'] != null ? (data['timestamp'] as Timestamp).toDate().toString() : 'Unknown'}',
