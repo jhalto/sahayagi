@@ -102,7 +102,7 @@ class _ManageFriendsPageState extends State<ManageFriendsPage> {
                   Map<String, dynamic> friendData =
                   snapshot.data!.data() as Map<String, dynamic>;
 
-                  String profilePic = friendData['profilePic'] ?? '';
+                  String profilePic = friendData['photoUrl'] ?? '';
                   String name = friendData['name'] ?? 'Unknown';
                   String email = friendData['email'] ?? 'No email';
 

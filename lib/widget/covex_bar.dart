@@ -32,7 +32,7 @@ class _ConvexBarDemoState extends State<ConvexBarDemo> {
   NotificationServices notificationServices = NotificationServices();
 
 
-  List<Widget> pages = [HomePage(),UserStoriesScreen(),const SugestedEvents(),const PostedEvents(),PostedBloodPost(),SuggestedBloodPosts(),NotificationsPage()];
+  List<Widget> pages = [HomePage(),const SugestedEvents(),SuggestedBloodPosts(),NotificationsPage()];
   int index =0;
   @override
   void initState() {
@@ -57,7 +57,7 @@ class _ConvexBarDemoState extends State<ConvexBarDemo> {
 
 
       bottomNavigationBar: ConvexAppBar(
-          top: -8,
+          top: -5,
 
 
 
@@ -77,10 +77,10 @@ class _ConvexBarDemoState extends State<ConvexBarDemo> {
           },
           items: const [
             TabItem(icon: Icon(Icons.home,color: texColorLight,)),
-            TabItem(icon: Icon(Icons.amp_stories,color: texColorLight,)),
+
             TabItem(icon: Icon(Icons.event_available,color: texColorLight)),
-            TabItem(icon: Icon(Icons.event_note_sharp,color: texColorLight)),
-            TabItem(icon: Icon(Icons.post_add,color: texColorLight)),
+
+
             TabItem(icon: Icon(Icons.bloodtype,color: texColorLight)),
             TabItem(icon: Icon(Icons.notification_add,color: texColorLight)),
 

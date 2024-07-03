@@ -1,11 +1,14 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
-import 'package:sahayagi/helpers/notification_helper.dart';  // Make sure to import the NotificationHelper
+import 'package:sahayagi/helpers/notification_helper.dart'; // Make sure to import the NotificationHelper
 import 'package:sahayagi/models/events_model.dart';
 import 'package:sahayagi/models/location_model.dart';
 import 'package:sahayagi/models/user_models.dart';
@@ -30,6 +33,7 @@ class _EventPostState extends State<EventPost> {
   String? _selectedDistrict;
   DateTime? _eventDate;
   DateTime? _lastApplicationDate;
+  File? _imageFile;
 
   bool _isLoading = false;
 
@@ -74,6 +78,8 @@ class _EventPostState extends State<EventPost> {
         'event_date': _eventDate,
         'last_application_date': _lastApplicationDate,
         'timestamp': FieldValue.serverTimestamp(),
+        // Add image URL if an image was selected
+        'image_url': _imageFile != null ? await _uploadImage(_imageFile!) : null,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Event added successfully')));
@@ -90,6 +96,12 @@ class _EventPostState extends State<EventPost> {
         _isLoading = false;
       });
     }
+  }
+
+  Future<String> _uploadImage(File imageFile) async {
+    // Implement the image upload logic here
+    // You can use Firebase Storage to upload the image and return the download URL
+    return ''; // Return the download URL of the uploaded image
   }
 
   Future<void> _sendNotificationToMatchingUsers(String eventId) async {
@@ -140,6 +152,7 @@ class _EventPostState extends State<EventPost> {
       _selectedDistrict = null;
       _eventDate = null;
       _lastApplicationDate = null;
+      _imageFile = null;
     });
   }
 
@@ -152,6 +165,17 @@ class _EventPostState extends State<EventPost> {
     );
     if (picked != null) {
       onDateSelected(picked);
+    }
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: source);
+
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
     }
   }
 
@@ -175,12 +199,12 @@ class _EventPostState extends State<EventPost> {
                   controller: _titleController,
                   decoration: InputDecoration(
                     hintText: 'Enter title',
-                    hintStyle: TextStyle(color: Colors.white,),
+
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  style: TextStyle(color: Colors.white),
+
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a title';
@@ -193,12 +217,12 @@ class _EventPostState extends State<EventPost> {
                   controller: _descriptionController,
                   decoration: InputDecoration(
                     hintText: 'Enter Description',
-                    hintStyle: TextStyle(color: Colors.white,),
+
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  style: TextStyle(color: Colors.white),
+
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a description';
@@ -211,12 +235,12 @@ class _EventPostState extends State<EventPost> {
                   controller: _requiredDayController,
                   decoration: InputDecoration(
                     hintText: 'Enter Required Days',
-                    hintStyle: TextStyle(color: Colors.white,),
+
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  style: TextStyle(color: Colors.white),
+
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter the required days';
@@ -229,12 +253,12 @@ class _EventPostState extends State<EventPost> {
                   controller: _locationDetailController,
                   decoration: InputDecoration(
                     hintText: 'Enter Location Details',
-                    hintStyle: TextStyle(color: Colors.white,),
+
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  style: TextStyle(color: Colors.white),
+
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter location details';
@@ -250,18 +274,18 @@ class _EventPostState extends State<EventPost> {
                   selectedColor: texColorDark,
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: Colors.grey,
+                      color: Colors.black,
                     ),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   buttonIcon: Icon(
                     Icons.arrow_drop_down,
-                    color: Colors.grey,
+                    color: Colors.black,
                   ),
                   buttonText: Text(
                     "Select Skills",
                     style: TextStyle(
-                      color: Colors.white,
+
                       fontSize: 16,
                     ),
                   ),
@@ -279,12 +303,12 @@ class _EventPostState extends State<EventPost> {
                   dropdownDecoratorProps: DropDownDecoratorProps(
                     dropdownSearchDecoration: InputDecoration(
                       hintText: "Please Select Event Type",
-                      hintStyle: TextStyle(color: Colors.white,),
+
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    baseStyle: TextStyle(color: Colors.white),
+
                   ),
 
                   popupProps: PopupProps.menu(
@@ -309,12 +333,12 @@ class _EventPostState extends State<EventPost> {
                   dropdownDecoratorProps: DropDownDecoratorProps(
                     dropdownSearchDecoration: InputDecoration(
                       hintText: "Please Select Sub-District",
-                      hintStyle: TextStyle(color: Colors.white,),
+
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    baseStyle: TextStyle(color: Colors.white),
+
                   ),
 
 
@@ -341,12 +365,11 @@ class _EventPostState extends State<EventPost> {
                   dropdownDecoratorProps: DropDownDecoratorProps(
                     dropdownSearchDecoration: InputDecoration(
                       hintText: "Please Select District",
-                      hintStyle: TextStyle(color: Colors.white,),
+
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    baseStyle: TextStyle(color: Colors.white), // Set the selected text color to white
                   ),
                   popupProps: PopupProps.menu(
                     showSearchBox: true,
@@ -359,7 +382,7 @@ class _EventPostState extends State<EventPost> {
                   dropdownBuilder: (context, selectedItem) {
                     return Text(
                       selectedItem ?? "Please Select District",
-                      style: TextStyle(color: Colors.white),
+
                     );
                   },
                   validator: (value) {
@@ -381,7 +404,7 @@ class _EventPostState extends State<EventPost> {
                         }),
                         child: Text(_eventDate == null
                             ? 'Select Event Date'
-                            : DateFormat.yMd().format(_eventDate!),style: TextStyle(color: Colors.white,),),
+                            : DateFormat.yMd().format(_eventDate!),),
                       ),
                     ),
                     Expanded(
@@ -393,8 +416,31 @@ class _EventPostState extends State<EventPost> {
                         }),
                         child: Text(_lastApplicationDate == null
                             ? 'Select Last Application Date'
-                            : DateFormat.yMd().format(_lastApplicationDate!),style: TextStyle(color: Colors.white,),),
+                            : DateFormat.yMd().format(_lastApplicationDate!),),
                       ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                if (_imageFile != null) ...[
+                  Image.file(
+                    _imageFile!,
+                    height: 200,
+                  ),
+                  const SizedBox(height: 10),
+                ],
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () => _pickImage(ImageSource.camera),
+                      icon: Icon(Icons.camera_alt),
+                      label: Text('Camera'),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () => _pickImage(ImageSource.gallery),
+                      icon: Icon(Icons.photo),
+                      label: Text('Gallery'),
                     ),
                   ],
                 ),

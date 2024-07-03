@@ -59,26 +59,7 @@ class _PostedEventsState extends State<PostedEvents> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(),
-      appBar: AppBar(
-        title: Text("Posted Events", style: appFontStyle(25, texColorLight)),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => EventPost()));
-            },
-            icon: const Icon(Icons.add_card_outlined),
-          ),
-          IconButton(
-            onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => ManageMessagesPage()));
-            },
-            icon: Icon(Icons.message),
-          ),
-        ],
-      ),
+
       body: FutureBuilder<void>(
         future: _fetchUserEventsFuture,
         builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
@@ -134,6 +115,12 @@ class _PostedEventsState extends State<PostedEvents> {
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: (){
+          Navigator.push(context, MaterialPageRoute(builder: (context) => EventPost(),));
+        },
+        child: Icon(Icons.add),
       ),
     );
   }
