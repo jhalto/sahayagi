@@ -45,6 +45,10 @@ class _ManageFriendRequestsPageState extends State<ManageFriendRequestsPage> {
 
           Map<String, dynamic> userData = snapshot.data!.data() as Map<String, dynamic>;
           List<String> friendRequests = List<String>.from(userData['friendRequests'] ?? []);
+          List<String> friends = List<String>.from(userData['friends'] ?? []);
+
+          // Filter out accepted friends from the friend requests list
+          friendRequests = friendRequests.where((requestId) => !friends.contains(requestId)).toList();
 
           if (friendRequests.isEmpty) {
             return Center(child: Text('No friend requests'));

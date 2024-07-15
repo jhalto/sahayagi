@@ -1,14 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:sahayagi/screens/chat_screen.dart';
 import 'package:sahayagi/screens/other_user_blood_posts.dart';
 import 'package:sahayagi/screens/other_user_friend.dart';
 import 'package:sahayagi/screens/others_user_events.dart';
 import 'package:sahayagi/screens/others_user_story.dart';
 
-import '../helpers/helper.dart';
 import '../helpers/notification_helper.dart';
 import '../widget/common_widget.dart';
 
@@ -41,6 +39,7 @@ class _OtherUserProfileDetailState extends State<OtherUserProfileDetail> {
 
     if (currentUser != null) {
       DocumentReference targetUserRef = FirebaseFirestore.instance.collection('users').doc(targetUserId);
+      DocumentReference currentUserRef = FirebaseFirestore.instance.collection('users').doc(currentUser.uid);
 
       DocumentSnapshot targetUserDoc = await targetUserRef.get();
       if (targetUserDoc.exists) {
@@ -50,16 +49,25 @@ class _OtherUserProfileDetailState extends State<OtherUserProfileDetail> {
           List<dynamic> friendRequests = targetUserData.containsKey('friendRequests')
               ? targetUserData['friendRequests']
               : [];
+          List<dynamic> incomingFriendRequests = targetUserData.containsKey('incomingFriendRequests')
+              ? targetUserData['incomingFriendRequests']
+              : [];
 
           if (friendRequests.contains(currentUser.uid)) {
             // Cancel friend request
             await targetUserRef.update({
               'friendRequests': FieldValue.arrayRemove([currentUser.uid])
             });
+            await currentUserRef.update({
+              'incomingFriendRequests': FieldValue.arrayRemove([targetUserId])
+            });
           } else {
             // Send friend request
             await targetUserRef.update({
               'friendRequests': FieldValue.arrayUnion([currentUser.uid])
+            });
+            await currentUserRef.update({
+              'incomingFriendRequests': FieldValue.arrayUnion([targetUserId])
             });
 
             // Send notification
@@ -78,6 +86,36 @@ class _OtherUserProfileDetailState extends State<OtherUserProfileDetail> {
           setState(() {});
         }
       }
+    }
+  }
+
+  Future<void> respondToFriendRequest(String targetUserId, bool accept) async {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null) {
+      DocumentReference targetUserRef = FirebaseFirestore.instance.collection('users').doc(targetUserId);
+      DocumentReference currentUserRef = FirebaseFirestore.instance.collection('users').doc(currentUser.uid);
+
+      if (accept) {
+        // Accept friend request
+        await currentUserRef.update({
+          'friends': FieldValue.arrayUnion([targetUserId])
+        });
+        await targetUserRef.update({
+          'friends': FieldValue.arrayUnion([currentUser.uid])
+        });
+      }
+
+      // Remove friend request
+      await currentUserRef.update({
+        'incomingFriendRequests': FieldValue.arrayRemove([targetUserId])
+      });
+      await targetUserRef.update({
+        'friendRequests': FieldValue.arrayRemove([currentUser.uid])
+      });
+
+      // Refresh the state to update UI
+      setState(() {});
     }
   }
 
@@ -112,8 +150,10 @@ class _OtherUserProfileDetailState extends State<OtherUserProfileDetail> {
 
                   List<dynamic> friends = userData['friends'] ?? [];
                   List<dynamic> friendRequests = userData['friendRequests'] ?? [];
+                  List<dynamic> incomingFriendRequests = userData['incomingFriendRequests'] ?? [];
                   bool isFriend = friends.contains(FirebaseAuth.instance.currentUser!.uid);
                   bool isRequested = friendRequests.contains(FirebaseAuth.instance.currentUser!.uid);
+                  bool isIncomingRequest = incomingFriendRequests.contains(FirebaseAuth.instance.currentUser!.uid);
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,40 +254,113 @@ class _OtherUserProfileDetailState extends State<OtherUserProfileDetail> {
                                                 width: 5,
                                               ),
                                               Text(
-                                                "Friends",
+                                                "Friend",
                                                 style: textBlack(),
                                               ),
                                             ],
                                           ),
                                           onPressed: () {
-                                            // Handle friend button click if needed
+                                             //crete function here for remove as friend or block
                                           },
                                         ))
-                                  else
+                                  else if (isIncomingRequest)
                                     Expanded(
-                                        child: ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.white70,
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.circular(10))),
-                                          child: Row(
-                                            children: [
-                                              Icon(isRequested ? Icons.person_remove : Icons.person_add),
-                                              SizedBox(
-                                                width: 5,
+                                        child: Column(
+                                          children: [
+                                            ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                  backgroundColor: Colors.green,
+                                                  shape: RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.circular(10))),
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.check),
+                                                  SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  Text(
+                                                    "Confirm Request",
+                                                    style: textBlack(),
+                                                  ),
+                                                ],
                                               ),
-                                              Expanded(
-                                                child: Text(
-                                                  isRequested ? "Cancel Request" : "Add Friend",
-                                                  style: textBlack(),
+                                              onPressed: () {
+                                                respondToFriendRequest(widget.userId, true);
+                                              },
+                                            ),
+                                            ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                  backgroundColor: Colors.red,
+                                                  shape: RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.circular(10))),
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.cancel),
+                                                  SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  Text(
+                                                    "Cancel Request",
+                                                    style: textBlack(),
+                                                  ),
+                                                ],
+                                              ),
+                                              onPressed: () {
+                                                respondToFriendRequest(widget.userId, false);
+                                              },
+                                            ),
+                                          ],
+                                        ))
+                                  else if (isRequested)
+                                      Expanded(
+                                          child: ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.white70,
+                                                shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(10))),
+                                            child: Row(
+                                              children: [
+                                                Icon(Icons.person_remove),
+                                                SizedBox(
+                                                  width: 5,
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-                                          onPressed: () {
-                                            sendFriendRequest(widget.userId);
-                                          },
-                                        )),
+                                                Expanded(
+                                                  child: Text(
+                                                    "Cancel Request",
+                                                    style: textBlack(),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            onPressed: () {
+                                              sendFriendRequest(widget.userId);
+                                            },
+                                          ))
+                                    else
+                                      Expanded(
+                                          child: ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.white70,
+                                                shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(10))),
+                                            child: Row(
+                                              children: [
+                                                Icon(Icons.person_add),
+                                                SizedBox(
+                                                  width: 5,
+                                                ),
+                                                Expanded(
+                                                  child: Text(
+                                                    "Add Friend",
+                                                    style: textBlack(),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            onPressed: () {
+                                              sendFriendRequest(widget.userId);
+                                            },
+                                          )),
                                 ],
                               )
                             ],
