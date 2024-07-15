@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -63,6 +64,11 @@ class _EventPostState extends State<EventPost> {
         return;
       }
 
+      String? imageUrl;
+      if (_imageFile != null) {
+        imageUrl = await _uploadImage(_imageFile!);
+      }
+
       CollectionReference events = FirebaseFirestore.instance.collection('events');
       DocumentReference documentReference = await events.add({
         'title': _titleController.text,
@@ -78,8 +84,7 @@ class _EventPostState extends State<EventPost> {
         'event_date': _eventDate,
         'last_application_date': _lastApplicationDate,
         'timestamp': FieldValue.serverTimestamp(),
-        // Add image URL if an image was selected
-        'image_url': _imageFile != null ? await _uploadImage(_imageFile!) : null,
+        'image_url': imageUrl,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Event added successfully')));
@@ -99,9 +104,16 @@ class _EventPostState extends State<EventPost> {
   }
 
   Future<String> _uploadImage(File imageFile) async {
-    // Implement the image upload logic here
-    // You can use Firebase Storage to upload the image and return the download URL
-    return ''; // Return the download URL of the uploaded image
+    try {
+      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      Reference storageReference = FirebaseStorage.instance.ref().child('event_images').child(fileName);
+      UploadTask uploadTask = storageReference.putFile(imageFile);
+      TaskSnapshot taskSnapshot = await uploadTask;
+      return await taskSnapshot.ref.getDownloadURL();
+    } catch (e) {
+      print('Error uploading image: $e');
+      throw e;
+    }
   }
 
   Future<void> _sendNotificationToMatchingUsers(String eventId) async {

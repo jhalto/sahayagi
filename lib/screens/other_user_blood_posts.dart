@@ -2,21 +2,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sahayagi/screens/app_drawer.dart';
-import 'package:sahayagi/screens/applied_blood_post.dart';
-import 'package:sahayagi/screens/manage_message.dart';
-import 'package:sahayagi/widget/common_widget.dart';
-import '../helpers/notification_helper.dart';
-import 'message_list_page.dart'; // Make sure this path is correct
+import '../helpers/notification_helper.dart'; // Ensure this path is correct
+import '../widget/common_widget.dart'; // Assuming this is where appFontStyle is defined
 
-class SuggestedBloodPosts extends StatefulWidget {
-  const SuggestedBloodPosts({Key? key}) : super(key: key);
+class OtherUserBloodPosts extends StatefulWidget {
+  final String userId;
+
+  OtherUserBloodPosts({required this.userId});
 
   @override
-  State<SuggestedBloodPosts> createState() => _SuggestedBloodPostsState();
+  State<OtherUserBloodPosts> createState() => _OtherUserBloodPostsState();
 }
 
-class _SuggestedBloodPostsState extends State<SuggestedBloodPosts> {
+class _OtherUserBloodPostsState extends State<OtherUserBloodPosts> {
   String? _userBloodGroup;
   String? _userDistrict;
   Set<String> _appliedPostIds = {};
@@ -67,15 +65,10 @@ class _SuggestedBloodPostsState extends State<SuggestedBloodPosts> {
     });
   }
 
-  Stream<List<DocumentSnapshot>> _getSuggestedBloodPosts() {
-    if (_userBloodGroup == null || _userDistrict == null) {
-      return Stream.value([]);
-    }
-
+  Stream<List<DocumentSnapshot>> _getOtherUserBloodPosts() {
     return FirebaseFirestore.instance
         .collection('blood_donation')
-        .where('blood_group', isEqualTo: _userBloodGroup)
-        .where('district', isEqualTo: _userDistrict)
+        .where('user_id', isEqualTo: widget.userId)
         .snapshots()
         .map((querySnapshot) {
       List<DocumentSnapshot> docs = querySnapshot.docs;
@@ -152,43 +145,16 @@ class _SuggestedBloodPostsState extends State<SuggestedBloodPosts> {
     }
   }
 
-  Future<void> _navigateToAppliedBloodPost() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const AppliedBloodPosts(),
-      ),
-    );
-    _fetchUserDetails(); // Refresh user details when returning
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       // drawer: AppDrawer(),
       // appBar: AppBar(
-      //   title: Text("Suggested Blood Posts", style: appFontStyle(25, texColorLight)),
+      //   title: Text("Other User Blood Posts", style: appFontStyle(25, texColorLight)),
       //   centerTitle: true,
-      //   actions: [
-      //     IconButton(
-      //       onPressed: () {
-      //         _navigateToAppliedBloodPost();
-      //       },
-      //       icon: Icon(Icons.bloodtype_outlined),
-      //     ),
-      //     IconButton(
-      //       onPressed: () {
-      //         Navigator.push(context,
-      //             MaterialPageRoute(builder: (context) => ManageMessagesPage()));
-      //       },
-      //       icon: Icon(Icons.message),
-      //     ),
-      //   ],
       // ),
-      body: _userBloodGroup == null || _userDistrict == null
-          ? Center(child: CircularProgressIndicator())
-          : StreamBuilder<List<DocumentSnapshot>>(
-        stream: _getSuggestedBloodPosts(),
+      body: StreamBuilder<List<DocumentSnapshot>>(
+        stream: _getOtherUserBloodPosts(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -200,7 +166,7 @@ class _SuggestedBloodPostsState extends State<SuggestedBloodPosts> {
 
           List<DocumentSnapshot> bloodPosts = snapshot.data ?? [];
           if (bloodPosts.isEmpty) {
-            return Center(child: Text('No matching blood posts found'));
+            return Center(child: Text('No blood posts found'));
           }
 
           return ListView.builder(
@@ -244,13 +210,6 @@ class _SuggestedBloodPostsState extends State<SuggestedBloodPosts> {
             },
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-
-        onPressed: (){
-          _navigateToAppliedBloodPost();
-        },
-        child: Icon(Icons.event_available),
       ),
     );
   }

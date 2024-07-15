@@ -108,7 +108,16 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
             return Center(child: Text('User not logged in'));
           }
 
-          List<DocumentSnapshot> users = snapshot.data!.docs.where((doc) => doc.id != currentUser.uid).toList();
+          List<DocumentSnapshot> users = snapshot.data!.docs.where((doc) {
+            Map<String, dynamic> userData = doc.data() as Map<String, dynamic>;
+            String? name = userData['name'];
+            List<dynamic> friendRequests = userData['friendRequests'] ?? [];
+            return doc.id != currentUser.uid &&
+                name != null &&
+                name.isNotEmpty &&
+                name != 'Unknown' &&
+                !friendRequests.contains(currentUser.uid);
+          }).toList();
 
           return ListView.builder(
             itemCount: users.length,
@@ -128,9 +137,9 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                       ? NetworkImage(userData['profilePic'])
                       : AssetImage('lib/images/default_user_image.jpg') as ImageProvider,
                 ),
-                title: Text(userData['name'] ?? 'Unknown', style: texStyle()),
+                title: Text(userData['name']),
                 trailing: isFriend
-                    ? Text('Friend', style: texStyle())
+                    ? Text('Friend')
                     : isRequested
                     ? ElevatedButton(
                   onPressed: () {

@@ -26,7 +26,7 @@ class _ManageFriendRequestsPageState extends State<ManageFriendRequestsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Friend Requests',style: texStyle()),
+        title: Text('Friend Requests', style: texStyle()),
       ),
       body: StreamBuilder<DocumentSnapshot>(
         stream: currentUserStream,
@@ -50,19 +50,20 @@ class _ManageFriendRequestsPageState extends State<ManageFriendRequestsPage> {
             return Center(child: Text('No friend requests'));
           }
 
-          return ListView.builder(
-            itemCount: friendRequests.length,
-            itemBuilder: (context, index) {
-              String requestId = friendRequests[index];
+          return FutureBuilder<List<DocumentSnapshot>>(
+            future: _getValidFriendRequests(friendRequests),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Center(child: Text('No valid friend requests'));
+              }
 
-              return FutureBuilder<DocumentSnapshot>(
-                future: FirebaseFirestore.instance.collection('users').doc(requestId).get(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData || !snapshot.data!.exists) {
-                    return ListTile(title: Text('User not found'));
-                  }
+              List<DocumentSnapshot> validRequests = snapshot.data!;
 
-                  Map<String, dynamic> requestUserData = snapshot.data!.data() as Map<String, dynamic>;
+              return ListView.builder(
+                itemCount: validRequests.length,
+                itemBuilder: (context, index) {
+                  DocumentSnapshot userDoc = validRequests[index];
+                  Map<String, dynamic> requestUserData = userDoc.data() as Map<String, dynamic>;
 
                   String profilePic = requestUserData['profilePic'] ?? ''; // Provide a default value
                   String name = requestUserData['name'] ?? 'Unknown'; // Provide a default value
@@ -73,14 +74,14 @@ class _ManageFriendRequestsPageState extends State<ManageFriendRequestsPage> {
                       backgroundImage: profilePic.isNotEmpty ? NetworkImage(profilePic) : null,
                       child: profilePic.isEmpty ? Icon(Icons.person) : null,
                     ),
-                    title: Text(name,style: texStyle(),),
-                    subtitle: Text(email,style: texStyle(),),
+                    title: Text(name),
+                    subtitle: Text(email),
                     onTap: () async {
                       bool? result = await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => FriendRequestDetailPage(
-                            requestId: requestId,
+                            requestId: userDoc.id,
                             currentUserId: FirebaseAuth.instance.currentUser!.uid,
                           ),
                         ),
@@ -98,5 +99,18 @@ class _ManageFriendRequestsPageState extends State<ManageFriendRequestsPage> {
         },
       ),
     );
+  }
+
+  Future<List<DocumentSnapshot>> _getValidFriendRequests(List<String> friendRequests) async {
+    List<DocumentSnapshot> validRequests = [];
+
+    for (String requestId in friendRequests) {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(requestId).get();
+      if (userDoc.exists) {
+        validRequests.add(userDoc);
+      }
+    }
+
+    return validRequests;
   }
 }

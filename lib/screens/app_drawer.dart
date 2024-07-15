@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:sahayagi/screens/manage_friends.dart';
 import 'package:sahayagi/screens/update_profile.dart';
 import 'package:sahayagi/screens/change_password.dart';
@@ -32,7 +33,7 @@ class _AppDrawerState extends State<AppDrawer> {
     }
 
     return Drawer(
-      backgroundColor: Colors.black12,
+      backgroundColor: Colors.blue,
       child: ListView(
         children: [
           StreamBuilder<DocumentSnapshot>(
@@ -68,8 +69,8 @@ class _AppDrawerState extends State<AppDrawer> {
                       );
                     },
                     child: CircleAvatar(
-                      backgroundImage: userData['imageUrl'] != null ? NetworkImage(userData['imageUrl']) : null,
-                      child: userData['imageUrl'] == null ? Icon(Icons.person, size: 30) : null,
+                      backgroundImage: userData['photoUrl'] != null ? NetworkImage(userData['photoUrl']) : null,
+                      child: userData['photoUrl'] == null ? Icon(Icons.person, size: 30) : null,
                     ),
                   ),
                   accountEmail: Text(userData['email'] ?? '', style: appFontStyle(15)),
@@ -143,15 +144,15 @@ class _AppDrawerState extends State<AppDrawer> {
               );
             },
           ),
-          Padding(
-            padding: const EdgeInsets.only(left: 40, right: 40, bottom: 20, top: 20),
-            child: ElevatedButton(
-              onPressed: () {
-                MyHelper().logOut(context);
-              },
-              child: Text("Log Out", style: appFontStyle(20, texColorDark, FontWeight.bold)),
-            ),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.only(left: 40, right: 40, bottom: 20, top: 20),
+          //   child: ElevatedButton(
+          //     onPressed: () {
+          //       MyHelper().logOut(context);
+          //     },
+          //     child: Text("Log Out", style: appFontStyle(20, texColorDark, FontWeight.bold)),
+          //   ),
+          // ),
           Padding(
             padding: const EdgeInsets.only(left: 40.0, right: 40),
             child: ElevatedButton(
@@ -176,8 +177,13 @@ class _AppDrawerState extends State<AppDrawer> {
               child: Text("Change Password", style: appFontStyle(15, texColorDark, FontWeight.bold)),
             ),
           ),
+          IconButton(color: Colors.yellow,onPressed: (){
+            MyHelper().logOut(context);
+          }, icon: Icon(Icons.logout,color: Colors.white,size: 30,),)
         ],
       ),
+
+
     );
   }
 

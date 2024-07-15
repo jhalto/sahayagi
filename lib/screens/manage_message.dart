@@ -90,8 +90,8 @@ class _ManageMessagesPageState extends State<ManageMessagesPage> {
                       backgroundImage: profilePic.isNotEmpty ? NetworkImage(profilePic) : null,
                       child: profilePic.isEmpty ? Icon(Icons.person) : null,
                     ),
-                    title: Text(name, style: texStyle()),
-                    subtitle: Text(email, style: texStyle()),
+                    title: Text(name,),
+                    subtitle: Text(email,),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -188,8 +188,8 @@ class _FriendSearchDelegate extends SearchDelegate<String> {
                   backgroundImage: profilePic.isNotEmpty ? NetworkImage(profilePic) : null,
                   child: profilePic.isEmpty ? Icon(Icons.person) : null,
                 ),
-                title: Text(name, style: texStyle()),
-                subtitle: Text(email, style: texStyle()),
+                title: Text(name),
+                subtitle: Text(email),
                 onTap: () {
                   Navigator.push(
                     context,

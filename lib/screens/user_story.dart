@@ -62,7 +62,7 @@ class _UserStoriesScreenState extends State<UserStoriesScreen> {
 
           List<DocumentSnapshot> stories = snapshot.data ?? [];
           if (stories.isEmpty) {
-            return Center(child: Text('No stories found',style: texStyle(),));
+            return Center(child: Text('No stories found',));
           }
 
           return ListView.builder(

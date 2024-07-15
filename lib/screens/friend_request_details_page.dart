@@ -51,7 +51,7 @@ class FriendRequestDetailPage extends StatelessWidget {
 
           Map<String, dynamic> requestUserData = snapshot.data!.data() as Map<String, dynamic>;
 
-          String profilePic = requestUserData['profilePic'] ?? ''; // Provide a default value
+          String profilePic = requestUserData['photoUrl'] ?? ''; // Provide a default value
           String name = requestUserData['name'] ?? 'Unknown'; // Provide a default value
           String email = requestUserData['email'] ?? 'No email'; // Provide a default value
           String age = requestUserData['age'] ?? 'N/A';
@@ -69,15 +69,15 @@ class FriendRequestDetailPage extends StatelessWidget {
                   child: profilePic.isEmpty ? Icon(Icons.person, size: 50) : null,
                 ),
                 SizedBox(height: 20),
-                Text('Name: $name', style: TextStyle()),
+                Text('Name: $name', ),
                 SizedBox(height: 10),
-                Text('Email: $email', style: TextStyle()),
+                Text('Email: $email',),
                 SizedBox(height: 10),
-                Text('Age: $age', style: TextStyle()),
+                Text('Age: $age',),
                 SizedBox(height: 10),
-                Text('Blood Group: $bloodGroup', style: TextStyle()),
+                Text('Blood Group: $bloodGroup',),
                 SizedBox(height: 10),
-                Text('Skills: ${skills.join(', ')}', style: TextStyle()),
+                Text('Skills: ${skills.join(', ')}',),
                 Spacer(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,

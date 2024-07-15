@@ -46,65 +46,65 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       // drawer: AppDrawer(),
-      appBar: AppBar(
-        leading: StreamBuilder<DocumentSnapshot>(
-          stream: FirebaseFirestore.instance.collection('users').doc(user!.uid).snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircularProgressIndicator();
-            }
-
-            if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
-              return const Text('No user data available', style: TextStyle(color: Colors.white));
-            }
-
-            var userData = snapshot.data!.data() as Map<String, dynamic>?;
-            if (userData == null) {
-              return const Text('User data is empty', style: TextStyle(color: Colors.white));
-            }
-
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => UserProfileDetail()));
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8, bottom: 8, left: 8, right: 8),
-                child: CircleAvatar(
-                  backgroundImage: NetworkImage(userData['photoUrl'] ?? ''),
-                ),
-              ),
-            );
-          },
-        ),
-        toolbarHeight: 65,
-        centerTitle: true,
-        title: Column(
-          children: [
-            Text(
-              "Sahayagi",
-              style: appFontStyle(30, texColorLight, FontWeight.bold),
-            ),
-            Text(
-              "Volunteer BD",
-              style: appFontStyle(15, texColorLight, FontWeight.w500, FontStyle.italic),
-            )
-          ],
-        ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => PostOption()));
-            },
-            icon: Icon(Icons.add_card_outlined),
-          ),
-          IconButton(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => ManageMessagesPage()));
-            },
-            icon: Icon(Icons.message),
-          ),
-        ],
-      ),
+      // appBar: AppBar(
+      //   leading: StreamBuilder<DocumentSnapshot>(
+      //     stream: FirebaseFirestore.instance.collection('users').doc(user!.uid).snapshots(),
+      //     builder: (context, snapshot) {
+      //       if (snapshot.connectionState == ConnectionState.waiting) {
+      //         return const CircularProgressIndicator();
+      //       }
+      //
+      //       if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
+      //         return const Text('No user data available', style: TextStyle(color: Colors.white));
+      //       }
+      //
+      //       var userData = snapshot.data!.data() as Map<String, dynamic>?;
+      //       if (userData == null) {
+      //         return const Text('User data is empty', style: TextStyle(color: Colors.white));
+      //       }
+      //
+      //       return GestureDetector(
+      //         onTap: () {
+      //           Navigator.push(context, MaterialPageRoute(builder: (context) => UserProfileDetail()));
+      //         },
+      //         child: Padding(
+      //           padding: const EdgeInsets.only(top: 8, bottom: 8, left: 8, right: 8),
+      //           child: CircleAvatar(
+      //             backgroundImage: NetworkImage(userData['photoUrl'] ?? ''),
+      //           ),
+      //         ),
+      //       );
+      //     },
+      //   ),
+      //   toolbarHeight: 65,
+      //   centerTitle: true,
+      //   title: Column(
+      //     children: [
+      //       Text(
+      //         "Sahayagi",
+      //         style: appFontStyle(30, texColorLight, FontWeight.bold),
+      //       ),
+      //       Text(
+      //         "Volunteer BD",
+      //         style: appFontStyle(15, texColorLight, FontWeight.w500, FontStyle.italic),
+      //       )
+      //     ],
+      //   ),
+      //   actions: [
+      //     IconButton(
+      //       onPressed: () {
+      //         Navigator.push(context, MaterialPageRoute(builder: (context) => PostOption()));
+      //       },
+      //       icon: Icon(Icons.add_card_outlined),
+      //     ),
+      //     IconButton(
+      //       onPressed: () {
+      //         Navigator.push(context, MaterialPageRoute(builder: (context) => ManageMessagesPage()));
+      //       },
+      //       icon: Icon(Icons.message),
+      //     ),
+      //   ],
+      // ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _storyStream,
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {

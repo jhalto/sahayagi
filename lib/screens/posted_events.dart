@@ -59,66 +59,68 @@ class _PostedEventsState extends State<PostedEvents> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      body: Container(
+        child: FutureBuilder<void>(
+          future: _fetchUserEventsFuture,
+          builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-      body: FutureBuilder<void>(
-        future: _fetchUserEventsFuture,
-        builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+            if (snapshot.hasError) {
+              return Center(child: Text('Something went wrong: ${snapshot.error}'));
+            }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Something went wrong: ${snapshot.error}'));
-          }
+            User? user = FirebaseAuth.instance.currentUser;
 
-          User? user = FirebaseAuth.instance.currentUser;
+            return StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('events')
+                  .where('user_id', isEqualTo: user!.uid).
+                  orderBy('timestamp', descending: true)
+                  .snapshots(),
+              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> eventSnapshot) {
+                if (eventSnapshot.hasError) {
+                  return Center(child: Text('Something went wrong: ${eventSnapshot.error}'));
+                }
 
-          return StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('events')
-                .where('user_id', isEqualTo: user!.uid)
-                .snapshots(),
-            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> eventSnapshot) {
-              if (eventSnapshot.hasError) {
-                return Center(child: Text('Something went wrong: ${eventSnapshot.error}'));
-              }
+                if (eventSnapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-              if (eventSnapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
+                if (!eventSnapshot.hasData || eventSnapshot.data!.docs.isEmpty) {
+                  return const Center(child: Text('No events posted by you'));
+                }
 
-              if (!eventSnapshot.hasData || eventSnapshot.data!.docs.isEmpty) {
-                return const Center(child: Text('No events posted by you'));
-              }
+                return ListView(
+                  padding: const EdgeInsets.all(8.0),
+                  children: eventSnapshot.data!.docs.map((DocumentSnapshot document) {
+                    Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+                    return FutureBuilder<int>(
+                      future: _getApplicantCount(document.id),
+                      builder: (context, applicantSnapshot) {
+                        if (applicantSnapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
 
-              return ListView(
-                padding: const EdgeInsets.all(8.0),
-                children: eventSnapshot.data!.docs.map((DocumentSnapshot document) {
-                  Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
-                  return FutureBuilder<int>(
-                    future: _getApplicantCount(document.id),
-                    builder: (context, applicantSnapshot) {
-                      if (applicantSnapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
+                        if (applicantSnapshot.hasError) {
+                          return Center(child: Text('Something went wrong: ${applicantSnapshot.error}'));
+                        }
 
-                      if (applicantSnapshot.hasError) {
-                        return Center(child: Text('Something went wrong: ${applicantSnapshot.error}'));
-                      }
-
-                      int applicantCount = applicantSnapshot.data ?? 0;
-                      return _buildEventCard(context, data, document.id, applicantCount);
-                    },
-                  );
-                }).toList(),
-              );
-            },
-          );
-        },
+                        int applicantCount = applicantSnapshot.data ?? 0;
+                        return _buildEventCard(context, data, document.id, applicantCount);
+                      },
+                    );
+                  }).toList(),
+                );
+              },
+            );
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: (){
-          Navigator.push(context, MaterialPageRoute(builder: (context) => EventPost(),));
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => EventPost()));
         },
         child: Icon(Icons.add),
       ),
@@ -135,6 +137,20 @@ class _PostedEventsState extends State<PostedEvents> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (data['image_url'] != null && data['image_url'].isNotEmpty) ...[
+              Container(
+                height: 200,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  image: DecorationImage(
+                    image: NetworkImage(data['image_url']),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
             Text('Posted by: ${data['user_name'] ?? 'Unknown'}', style: appFontStyle(15, texColorDark, FontWeight.bold)),
             const SizedBox(height: 10),
             Text(data['title'] ?? 'Empty', style: appFontStyle(20, texColorDark, FontWeight.bold)),

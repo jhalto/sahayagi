@@ -13,7 +13,7 @@ import 'message_list_page.dart';
 import 'view_applicant_in_user_blood posts.dart';
 
 class PostedBloodPost extends StatefulWidget {
-  const PostedBloodPost({super.key});
+  const PostedBloodPost({super.key,});
 
   @override
   State<PostedBloodPost> createState() => _PostedBloodPostState();

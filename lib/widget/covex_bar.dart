@@ -32,7 +32,7 @@ class _ConvexBarDemoState extends State<ConvexBarDemo> {
   NotificationServices notificationServices = NotificationServices();
 
 
-  List<Widget> pages = [HomePage(),const SugestedEvents(),SuggestedBloodPosts(),NotificationsPage()];
+  List<Widget> pages = [HomePage(),SuggestedEvents(),SuggestedBloodPosts(),NotificationsPage()];
   int index =0;
   @override
   void initState() {

@@ -97,6 +97,9 @@ class _BloodPostState extends State<BloodPost> {
         'timestamp': FieldValue.serverTimestamp(),
       });
 
+      // Update document with post_id
+      await documentReference.update({'post_id': documentReference.id});
+
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Blood post added successfully')));
 
@@ -140,7 +143,7 @@ class _BloodPostState extends State<BloodPost> {
               'A new blood donation request matching your blood group and district has been posted.'
           );
 
-          // Save notification to Firestore
+          // Save notification to Firestore with post_id
           await FirebaseFirestore.instance.collection('notifications').add({
             'user_id': doc.id,
             'title': 'New Blood Post Suggested!',

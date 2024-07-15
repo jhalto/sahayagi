@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sahayagi/helpers/helper.dart';
 import 'package:sahayagi/screens/forgot_password.dart';
+import 'package:sahayagi/screens/page_view.dart';
 import 'package:sahayagi/screens/sign_up.dart';
 import 'package:sahayagi/widget/covex_bar.dart';
 
@@ -69,7 +70,7 @@ class _SignInState extends State<SignIn> {
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ConvexBarDemo(),
+                          builder: (context) => AppPageView(),
                         ),
                       );
                     });
@@ -151,25 +152,21 @@ class _SignInState extends State<SignIn> {
                               GestureDetector(
                                 onTap: () {
                                   Navigator.pop(context);
-                                  Get.to(() => ForgotPasswordScreen());
+
                                 },
                                 child: Container(
                                   height: 50,
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.email),
-                                      Text("Reset via Mail Verification"),
-                                    ],
+                                  child: GestureDetector(
+                                      onTap: (){
+                                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ForgotPasswordScreen(),));
+                                      },
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.email),
+                                        Text("Reset via Mail Verification"),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {},
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.mobile_friendly),
-                                    Text("Reset via Phone Verification"),
-                                  ],
                                 ),
                               ),
                             ],

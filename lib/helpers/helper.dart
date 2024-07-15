@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:sahayagi/screens/page_view.dart';
 import 'package:sahayagi/screens/sign_in.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -67,7 +68,7 @@ class MyHelper {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-            builder: (context) => ConvexBarDemo(), // Replace with your home page
+            builder: (context) => AppPageView(),
           ),
               (route) => false,
         );
@@ -139,6 +140,7 @@ class MyHelper {
     // Return the UserCredential
     return userCredential;
   }
+
 
   Future<String?> getUserName(String uid) async {
     DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection(

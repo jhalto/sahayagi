@@ -1,54 +1,60 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../widget/common_widget.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'event_detail_page.dart'; // Make sure to create this page for events
+import 'blood_detail_page.dart'; // Make sure to create this page for blood posts
 
-class NotificationsPage extends StatelessWidget {
-  const NotificationsPage({Key? key}) : super(key: key);
+class NotificationsPage extends StatefulWidget {
+  @override
+  _NotificationsPageState createState() => _NotificationsPageState();
+}
 
+class _NotificationsPageState extends State<NotificationsPage> {
   @override
   Widget build(BuildContext context) {
-    User? user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text("Notifications", style: appFontStyle(25, texColorLight)),
-        ),
-        body: Center(child: Text("User not logged in", style: appFontStyle(20, texColorDark))),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
-        title: Text("Notifications", style: appFontStyle(25, texColorLight)),
+        title: Text('Notifications'),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('notifications')
-            .where('user_id', isEqualTo: user.uid)
+        stream: FirebaseFirestore.instance.collection('notifications')
+            .where('user_id', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
             .orderBy('timestamp', descending: true)
             .snapshots(),
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Something went wrong: ${snapshot.error}', style: appFontStyle(20, texColorDark)));
-          }
-
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text('No notifications', style: texStyle()));
+            return Center(child: Text('No notifications found'));
           }
 
           return ListView(
-            children: snapshot.data!.docs.map((DocumentSnapshot document) {
-              Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+            children: snapshot.data!.docs.map((doc) {
+              var data = doc.data() as Map<String, dynamic>;
               return ListTile(
-                title: Text(data['title'] ?? 'No title', style: texStyle()),
-                subtitle: Text(data['body'] ?? 'No body', style: texStyle()),
-                trailing: Text(data['timestamp']?.toDate().toString() ?? 'No timestamp', style: texStyle()),
+                title: Text(data['title'] ?? 'No Title'),
+                subtitle: Text(data['body'] ?? 'No Body'),
+                onTap: () {
+                  if (data.containsKey('event_id')) {
+                    String eventId = data['event_id'];
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EventDetailsPage(eventId: eventId),
+                      ),
+                    );
+                  } else if (data.containsKey('post_id')) {
+                    String postId = data['post_id'];
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BloodDetailPage(documentId: postId,),
+                      ),
+                    );
+                  }
+                },
               );
             }).toList(),
           );

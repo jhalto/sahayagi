@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:sahayagi/screens/page_view.dart';
 import 'package:sahayagi/screens/sign_in.dart';
 import 'package:sahayagi/widget/common_widget.dart';
 import 'package:sahayagi/widget/covex_bar.dart';
@@ -66,14 +67,14 @@ class _MyAppState extends State<MyApp> {
           iconTheme: IconThemeData(
             color: iconColorWhite,
           ),
-          color: appColorDark,
+          color: Colors.blue,
         ),
         scaffoldBackgroundColor: Colors.white,
 
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: isLogin ? ConvexBarDemo() : SignIn(),
+      home: isLogin ? AppPageView() : SignIn(),
     );
   }
 }

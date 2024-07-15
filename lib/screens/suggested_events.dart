@@ -8,14 +8,14 @@ import 'package:sahayagi/widget/common_widget.dart'; // Assuming this is where a
 import '../helpers/notification_helper.dart';
 import 'message_list_page.dart'; // Make sure this path is correct
 
-class SugestedEvents extends StatefulWidget {
-  const SugestedEvents({Key? key});
+class SuggestedEvents extends StatefulWidget {
+  const SuggestedEvents({Key? key});
 
   @override
-  State<SugestedEvents> createState() => _SugestedEventsState();
+  State<SuggestedEvents> createState() => _SuggestedEventsState();
 }
 
-class _SugestedEventsState extends State<SugestedEvents> {
+class _SuggestedEventsState extends State<SuggestedEvents> {
   List<String> _userSkills = [];
 
   @override
@@ -61,7 +61,8 @@ class _SugestedEventsState extends State<SugestedEvents> {
     // Fetch all events that match the user's skills
     Stream<List<DocumentSnapshot>> eventsStream = FirebaseFirestore.instance
         .collection('events')
-        .where('skills', arrayContainsAny: _userSkills) // Query events that match any of the user's skills
+        .where('skills', arrayContainsAny: _userSkills)
+         .orderBy('timestamp', descending: true) // Query events that match any of the user's skills
         .snapshots()
         .map((querySnapshot) => querySnapshot.docs);
 
@@ -162,24 +163,24 @@ class _SugestedEventsState extends State<SugestedEvents> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: AppDrawer(),
-      appBar: AppBar(
-        title: Text("Suggested Events", style: appFontStyle(25, texColorLight)),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: _navigateToAppliedEvents,
-            icon: Icon(Icons.app_registration_rounded),
-          ),
-          IconButton(
-            onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => ManageMessagesPage()));
-            },
-            icon: Icon(Icons.message),
-          ),
-        ],
-      ),
+      // drawer: AppDrawer(),
+      // appBar: AppBar(
+      //   title: Text("Suggested Events", style: appFontStyle(25, texColorLight)),
+      //   centerTitle: true,
+      //   actions: [
+      //     IconButton(
+      //       onPressed: _navigateToAppliedEvents,
+      //       icon: Icon(Icons.app_registration_rounded),
+      //     ),
+      //     IconButton(
+      //       onPressed: () {
+      //         Navigator.push(context,
+      //             MaterialPageRoute(builder: (context) => ManageMessagesPage()));
+      //       },
+      //       icon: Icon(Icons.message),
+      //     ),
+      //   ],
+      // ),
       body: StreamBuilder<List<DocumentSnapshot>>(
         stream: _getEventsBySkills(),
         builder: (BuildContext context, AsyncSnapshot<List<DocumentSnapshot>> snapshot) {
@@ -188,15 +189,16 @@ class _SugestedEventsState extends State<SugestedEvents> {
           }
 
           if (snapshot.hasError) {
-            return Center(child: Text('Something went wrong: ${snapshot.error}',style: texStyle(),));
+            return Center(child: Text('Something went wrong: ${snapshot.error}', style: texStyle(),));
           }
 
           List<DocumentSnapshot> events = snapshot.data ?? [];
           if (events.isEmpty) {
-            return Center(child: Text('No matching events found',style: texStyle(),));
+            return Center(child: Text('No matching events found', style: texStyle(),));
           }
 
           return ListView.builder(
+
             itemCount: events.length,
             itemBuilder: (BuildContext context, int index) {
               DocumentSnapshot document = events[index];
@@ -216,6 +218,19 @@ class _SugestedEventsState extends State<SugestedEvents> {
                       Text('Posted by: ${data['user_name'] ?? 'Unknown'}', style: appFontStyle(15, texColorDark, FontWeight.bold)),
                       SizedBox(height: 10),
                       Text(data['title'] ?? 'Empty', style: appFontStyle(20, texColorDark, FontWeight.bold)),
+                      SizedBox(height: 10),
+                      if (data['image_url'] != null && data['image_url'].isNotEmpty)
+                        Container(
+                          height: 200,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            image: DecorationImage(
+                              image: NetworkImage(data['image_url']),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
                       SizedBox(height: 10),
                       Text(data['description'] ?? 'No description', style: appFontStyle(15)),
                       SizedBox(height: 10),
@@ -243,6 +258,12 @@ class _SugestedEventsState extends State<SugestedEvents> {
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: (){
+          _navigateToAppliedEvents();
+        },
+        child: Icon(Icons.event_available),
       ),
     );
   }

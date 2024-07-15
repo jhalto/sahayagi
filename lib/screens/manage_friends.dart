@@ -1,8 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:sahayagi/widget/common_widget.dart';
-import 'chat_screen.dart';
+import 'package:sahayagi/screens/other_user_detail_page.dart';
 
 class ManageFriendsPage extends StatefulWidget {
   const ManageFriendsPage({Key? key}) : super(key: key);
@@ -45,15 +44,6 @@ class _ManageFriendsPageState extends State<ManageFriendsPage> {
     setState(() {});
   }
 
-  void navigateToChatScreen(String friendId, String friendName) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChatScreen(friendId: friendId, friendName: friendName),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -84,23 +74,27 @@ class _ManageFriendsPageState extends State<ManageFriendsPage> {
             return Center(child: Text('No friends found'));
           }
 
-          return ListView.builder(
-            itemCount: friends.length,
-            itemBuilder: (context, index) {
-              String friendId = friends[index];
+          return FutureBuilder<List<DocumentSnapshot>>(
+            future: _fetchFriends(friends),
+            builder: (context, friendsSnapshot) {
+              if (friendsSnapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              }
 
-              return FutureBuilder<DocumentSnapshot>(
-                future: FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(friendId)
-                    .get(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData || !snapshot.data!.exists) {
-                    return ListTile(title: Text('User not found'));
-                  }
+              if (friendsSnapshot.hasError) {
+                return Center(child: Text('Something went wrong: ${friendsSnapshot.error}'));
+              }
 
+              if (!friendsSnapshot.hasData || friendsSnapshot.data!.isEmpty) {
+                return Center(child: Text('No friends found'));
+              }
+
+              return ListView.builder(
+                itemCount: friendsSnapshot.data!.length,
+                itemBuilder: (context, index) {
+                  DocumentSnapshot friendDoc = friendsSnapshot.data![index];
                   Map<String, dynamic> friendData =
-                  snapshot.data!.data() as Map<String, dynamic>;
+                  friendDoc.data() as Map<String, dynamic>;
 
                   String profilePic = friendData['photoUrl'] ?? '';
                   String name = friendData['name'] ?? 'Unknown';
@@ -115,22 +109,22 @@ class _ManageFriendsPageState extends State<ManageFriendsPage> {
                           ? Icon(Icons.person)
                           : null,
                     ),
-                    title: Text(
-                      name,
-                      style: texStyle(),
-                    ),
-                    subtitle: Text(
-                      email,
-                      style: texStyle(),
-                    ),
+                    title: Text(name),
+                    subtitle: Text(email),
                     trailing: IconButton(
                       icon: Icon(Icons.remove_circle, color: Colors.red),
                       onPressed: () {
-                        removeFriend(friendId);
+                        removeFriend(friendDoc.id);
                       },
                     ),
                     onTap: () {
-                      navigateToChatScreen(friendId, name);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              OtherUserProfileDetail(userId: friendDoc.id),
+                        ),
+                      );
                     },
                   );
                 },
@@ -140,5 +134,20 @@ class _ManageFriendsPageState extends State<ManageFriendsPage> {
         },
       ),
     );
+  }
+
+  Future<List<DocumentSnapshot>> _fetchFriends(List<String> friends) async {
+    List<DocumentSnapshot> friendDocs = [];
+
+    for (String friendId in friends) {
+      DocumentSnapshot friendDoc =
+      await FirebaseFirestore.instance.collection('users').doc(friendId).get();
+
+      if (friendDoc.exists) {
+        friendDocs.add(friendDoc);
+      }
+    }
+
+    return friendDocs;
   }
 }
