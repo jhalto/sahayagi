@@ -130,8 +130,11 @@ class EventSearchDelegate extends SearchDelegate<String> {
         final events = snapshot.data!.docs;
         final filteredEvents = events.where((event) {
           final eventData = event.data() as Map<String, dynamic>;
-          final skill = eventData['skill'] ?? '';
-          return skill.toLowerCase().contains(query.toLowerCase());
+          final skills = eventData['skills'] ?? [];
+          if (skills is List) {
+            return skills.any((skill) => skill.toString().toLowerCase().contains(query.toLowerCase()));
+          }
+          return false;
         }).toList();
 
         return ListView.builder(
@@ -139,14 +142,15 @@ class EventSearchDelegate extends SearchDelegate<String> {
           itemBuilder: (context, index) {
             final eventData = filteredEvents[index].data() as Map<String, dynamic>;
             final eventId = filteredEvents[index].id;
-            final name = eventData['name'] ?? 'Unknown';
-            final skill = eventData['skill'] ?? 'Unknown';
+            final name = eventData['title'] ?? 'Unknown';
+            final skills = eventData['skills'] ?? [];
+            final skillString = (skills is List) ? skills.join(', ') : 'Unknown';
             final date = eventData['date'] ?? 'No date';
 
             return ListTile(
               leading: Icon(Icons.event),
               title: Text(name, style: textBlackBold(16)),
-              subtitle: Text('$skill - $date', style: textBlack()),
+              subtitle: Text('$skillString - $date', style: textBlack()),
               onTap: () {
                 // Navigate to the event details screen (implement this screen)
                 Navigator.push(
