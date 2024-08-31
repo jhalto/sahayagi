@@ -12,7 +12,20 @@
           "package_name": "com.example.sahayagi"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1063292408157-m7bp3mnbrgqqscea6el8o6hpb54lbsf6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.sahayagi",
+            "certificate_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+          }
+        },
+        {
+          "client_id": "1063292408157-544a90hgh1me8vg4ij4qsfe0d23hjnm0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBF89cJO521foKAYZ_F_a9sdwoeHcE-ycg"
@@ -20,7 +33,63 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1063292408157-544a90hgh1me8vg4ij4qsfe0d23hjnm0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1063292408157-0da270558stcshvg45d6fgl27osi42qd.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.sahayagiAdmin"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1063292408157:android:b080e6ada56db6fe6058b4",
+        "android_client_info": {
+          "package_name": "com.example.sahayagi_admin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1063292408157-ced7icn4lb3ddk9jfjj66s754hfqnepr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.sahayagi_admin",
+            "certificate_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+          }
+        },
+        {
+          "client_id": "1063292408157-544a90hgh1me8vg4ij4qsfe0d23hjnm0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBF89cJO521foKAYZ_F_a9sdwoeHcE-ycg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1063292408157-544a90hgh1me8vg4ij4qsfe0d23hjnm0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1063292408157-0da270558stcshvg45d6fgl27osi42qd.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.sahayagiAdmin"
+              }
+            }
+          ]
         }
       }
     }

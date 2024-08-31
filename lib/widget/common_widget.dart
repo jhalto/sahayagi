@@ -11,6 +11,34 @@ import 'package:google_fonts/google_fonts.dart';
      fontStyle: fs,
    );
  }
+texStyle([Color?color,FontWeight?fw,FontStyle?fs]){
+  return GoogleFonts.montserrat(
+    color: Colors.white,
+    fontWeight: fw,
+    fontStyle: fs,
+  );
+
+}
+textBlackBold(double size){
+  return GoogleFonts.montserrat(
+    fontSize: size,
+    color: Colors.black,
+    fontWeight: FontWeight.bold,
+
+  );
+}
+textBlack(){
+  return GoogleFonts.montserrat(
+    fontSize: 16,
+    color: Colors.black,
+  );
+}
+textWhite(){
+  return GoogleFonts.montserrat(
+    fontSize: 16,
+    color: Colors.white,
+  );
+}
 const Color appColorLight=Color(0xff216FD5);
 const Color appColorDark=Color(0xff000000);
 const Color texColorLight=Color(0xffFFFFFF);
@@ -18,6 +46,8 @@ const Color texColorDark=Color(0xff1C1B1F);
 const Color buttonColorDark=Color(0xff246BFD);
 const Color iconColorWhite=Color(0xffFFFFFF);
 const Color logoColor=Color(0xff0A66C2);
+const Color appSemiDarkColor=Color(0xff1F1F1F);
+const Color buttonColor=Color(0xff676767);
 
 
 
